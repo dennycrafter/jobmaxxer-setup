@@ -19,7 +19,9 @@ Talk plainly. A few questions at a time (3 to 5), never a wall of questions. Giv
 
 ## 1. Collect what they have
 
-Ask for anything, in any shape. All of it is useful:
+First, use what you already know. If you have memory or past chats with this person, search them for jobs, school, projects, skills, numbers and wins. Read it back to them in short and ask what's wrong or out of date before using any of it. It goes into the fact bank like anything else they say.
+
+Then ask for anything, in any shape. All of it is useful:
 - their current CV (any age, any state), or their LinkedIn profile (they can save it as a PDF or paste it)
 - old cover letters, portfolio links, a personal site, GitHub
 - or just "tell me what you've done since school": a brain dump is fine. Voice-to-text is fine.
@@ -112,7 +114,7 @@ Stop when they've had enough. Tell them they can add more any time (see "Adding 
 
 - **One page**, US Letter. For anyone with under about 10 years of experience, one page is the standard.
 - **No** photo, date of birth, age, gender, marital status, nationality, religion, full street address, or "References available on request".
-- **Header:** full name in capitals. Contact line: `City, ST  |  phone  |  email  |  LinkedIn` (plus portfolio or GitHub if relevant). Links written `[label](url)`. Phone as `(512) 555-0123`.
+- **Header:** full name in capitals. Contact line: `City, ST  |  phone  |  email  |  LinkedIn` (plus portfolio or GitHub if relevant). Every link is written `[label](url)` so it's clickable in the .docx and .pdf: email as `[name@mail.com](mailto:name@mail.com)`, LinkedIn as `[linkedin.com/in/name](https://www.linkedin.com/in/name)`, same for portfolio or GitHub. Phone as `(512) 555-0123`.
 - **Sections, in this order:**
   - Summary (bold lead line + 2 to 3 sentences)
   - Experience (most recent first)
@@ -202,6 +204,7 @@ Before calling it done, check:
 - [ ] Dates, places, tense and punctuation are consistent (the check shows no `problems`).
 - [ ] Every gap in `lookAt` was asked about.
 - [ ] Nothing from the "No" list in the header or anywhere.
+- [ ] Email, LinkedIn and other links in the header are clickable (`[label](url)`, email with `mailto:`).
 - [ ] Summary has no clichés and no city in the opening.
 - [ ] The optional bank holds the rest of the true, useful facts.
 - [ ] Spelling is US English (unless they apply elsewhere).
