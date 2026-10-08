@@ -763,7 +763,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
         <textarea id="add-jd" placeholder="Paste the full job description for one job. Add its link above if you have one."></textarea>
       </details>
       <div class="actbar"><button class="btn primary" id="add-go">Add</button><span class="status" id="add-status"></span></div>
-      <p class="hint">Link only? The details fill in within 2 hours. Description pasted? They fill in straight away. Once you apply, the job moves to Applied like everything else.</p>
+      <p class="hint">Link only? The details fill in within a few minutes. Description pasted? They fill in straight away. Once you apply, the job moves to Applied like everything else.</p>
     </section>
 </div>
 <div class="modal" id="paste-modal" hidden>
@@ -929,7 +929,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
   // Links you add yourself live in "My links" until the person acts on them.
   const tabOf = (j) => (j.manual && (j.status || "new") === "new" ? "mine" : STATUS_TAB[j.status] || "queue");
   const STATUS_LABEL = { new: "New", applied: "Applied", interview: "Interview", offer: "Offer", rejected: "Rejected", skipped: "Skipped" };
-  let jobs = [], db = null, sample = null, downloads = null, tab = "queue", writable = true;
+  let jobs = [], db = null, sample = null, downloads = null, mcp = null, tab = "queue", writable = true;
   let master = null, rules = "", voice = null, prefs = [];
   // Used until the person saves their own tailoring rules on the Master CV page.
   const STARTER_RULES = `TAILORING RULES (hard limits, never break them):
@@ -1564,7 +1564,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
           ].filter(Boolean).map((x) => `<span class="mi">${x}</span>`).join("")}</div>
           ${isDue || j.pending || hasAuthNote(j.auth) || flags.length ? `<div class="sigs">
             ${isDue ? `<span class="sig bad">Follow-up due</span>` : ""}
-            ${j.pending ? `<span class="sig info">${j.pendingNote ? esc(j.pendingNote) : "Details pending: filling in within 2 hours"}</span>` : ""}
+            ${j.pending ? `<span class="sig info">${j.pendingNote ? esc(j.pendingNote) : "Details pending: filling in within a few minutes"}</span>` : ""}
             ${hasAuthNote(j.auth) ? `<span class="sig warn" title="Work authorization language in the posting">Work auth: ${esc(j.auth)}</span>` : ""}
             ${flags.map((f) => `<span class="sig warn">${esc(f)}</span>`).join("")}
           </div>` : ""}
@@ -1963,6 +1963,19 @@ Reply with ONLY one JSON object:
     toast("Added. Filling in the details…"); openAdd(false);
     if (sample && !(await extractInto(id, "", text))) await write(id, { pending: false, pendingNote: "" }); // the text is saved either way
   }
+  // Wakes the "Fill pasted job links" scheduled task right away, so it only runs when a link is pasted
+  // (no timer burning usage). Its id is saved in profile/tasks.linkFiller at setup. false = couldn't start it.
+  async function startFiller() {
+    if (!mcp || !db) return false;
+    try {
+      const d = await db.doc("profile/tasks").get();
+      const id = d && d.exists ? String((d.data() || {}).linkFiller || "") : "";
+      if (!/^trig_/.test(id)) return false;
+      await mcp.callTool("Claude Code Remote", "fire_trigger", { trigger_id: id }, { cache: false });
+      return true;
+    } catch (_) { return false; }
+  }
+
   async function addLinks() {
     if (!db) return;
     const urls = [...new Set($("add-links").value.split(/\s+/).map((s) => s.trim()).filter((s) => /^https?:\/\/\S+\.\S+/i.test(s)))];
@@ -1972,7 +1985,7 @@ Reply with ONLY one JSON object:
     if (!urls.length) { st.className = "status err"; st.textContent = "Paste a link that starts with http, or a job description."; return; }
     if (jdText && urls.length > 1) { st.className = "status err"; st.textContent = "Add one link at a time when you paste a description."; return; }
     const have = new Set(jobs.map((j) => normUrl(j.url)));
-    let added = 0, dup = 0, lastId = null;
+    let added = 0, dup = 0, lastId = null; const newIds = [];
     $("add-go").disabled = true;
     for (const u of urls) {
       if (have.has(normUrl(u))) { dup++; continue; }
@@ -1980,12 +1993,16 @@ Reply with ONLY one JSON object:
       try {
         await db.doc("jobs/" + id).set({ url: u, manual: true, status: "new", found: today(), source: srcOf(u), company: guessCompany(u), role: guessRole(u),
           fit: "B", cv: "", track: "", why: "", flags: "", salary: "", arrangement: "", auth: "", jd: "", pending: true });
-        added++; lastId = id; have.add(normUrl(u));
+        added++; lastId = id; newIds.push(id); have.add(normUrl(u));
       } catch (_) { st.className = "status err"; st.textContent = "Couldn't save a link. Try again."; }
     }
     $("add-links").value = "";
     st.textContent = [added ? `Added ${added} link${added > 1 ? "s" : ""}.` : "", dup ? `${dup} already in your tracker.` : ""].filter(Boolean).join(" ");
     if (added && jdText && sample) { st.textContent = "Added. Reading the description…"; $("add-jd").value = ""; if (await extractInto(lastId, urls[0], jdText)) st.textContent = "Added with details."; }
+    else if (added && !(await startFiller())) {
+      // no link filler to wake: ask for the description instead of leaving the job waiting forever
+      for (const id of newIds) await write(id, { pendingTried: true, pendingNote: "Paste the description to fill this in" });
+    }
     $("add-go").disabled = false;
     // all good: close the window and say so; if anything was a duplicate or failed, stay open to show why
     if (added && !dup && st.className !== "status err") { toast(st.textContent); openAdd(false); }
@@ -2727,6 +2744,7 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     }, () => { $("list").innerHTML = `<div class="empty"><strong>Lost connection to your pipeline</strong>Reload the page to reconnect.</div>`; });
     claude.use("sample").then((s) => { sample = s; render(); });
     claude.use("downloads").then((d) => { downloads = d; if (cur) paintDrawer(); });
+    claude.use("mcp").then((m) => { mcp = m; });
   })();
 })();
 </script>

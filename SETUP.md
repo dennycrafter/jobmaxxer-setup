@@ -15,7 +15,7 @@ Keep it cheap: they pay for every token. `index.html` is about 270KB, with one 6
 1. Get the files: clone this repo (attach it to the session if needed), or use the files the person attached.
 2. Load the `artifact-capabilities` skill, then publish `index.html` with the Artifact tool:
    - title "jobmaxxer", icon "briefcase"
-   - capabilities: `db` (the database), `sample` (lets the page ask Claude to tailor CVs and read job posts) and `downloads` (CV .docx and .pdf). Also `user` if the skill lists it (the page uses it to check write access).
+   - capabilities: `db` (the database), `sample` (lets the page ask Claude to tailor CVs and read job posts), `downloads` (CV .docx and .pdf) and `mcp` with `{"servers": [{"server": "Claude Code Remote", "tools": ["fire_trigger"]}]}` (lets the page start the link filler the moment a link is pasted). Also `user` if the skill lists it (the page uses it to check write access). If the publish refuses the `mcp` part, publish without it: the page then asks for the description when a link is pasted.
    - supporting files in `files`: `logo.webp`, `car.webp`, `fonts/LiberationSans-Regular.ttf`, `fonts/LiberationSans-Bold.ttf`, `fonts/LiberationSans-Italic.ttf`, `fonts/LICENSE-OFL.txt` (same published paths)
    - If the Artifact tool asks you to load the `artifact-design` skill first, do, but publish `index.html` as it is. Don't restyle or rewrite it.
 3. Save the artifact URL. Every later step and both scheduled tasks need it.
@@ -129,9 +129,13 @@ You run the morning job search for the jobmaxxer tracker at ARTIFACT_URL. Use th
 5. Finish with one short line: how many jobs were added and how many were A.
 ```
 
-### b. Fill pasted job links (every 2 hours, 8am to 10pm)
+### b. Fill pasted job links (only when a link is pasted, no schedule)
 
 Name: "Fill pasted job links". A smaller model is fine for this one (Sonnet).
+
+Create it with NO schedule (no cron and no run-once time), so it never runs on a timer. The page wakes it the moment a link is pasted. Then save its id (starts with `trig_`) so the page can find it: ArtifactData `set` doc `profile/tasks` with `{"linkFiller": "<the id>"}`. The first time a link is pasted, the page asks the person once to allow it to start the task.
+
+If the scheduling tool can't create a task without a schedule, don't fall back to a timer: skip this task and tell the person "When you paste a link, also paste the job description and it fills in straight away."
 
 Prompt:
 

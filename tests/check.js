@@ -22,11 +22,15 @@ const fakeClaude = (d) => {
     collection: () => ({ onSnapshot: (cb) => { listeners.push(cb); emit(); return () => {}; } }),
     doc: (p) => ({
       onSnapshot: (cb) => { setTimeout(() => cb(docs[p] ? { exists: true, data: () => docs[p] } : { exists: false, data: () => null }), 0); return () => {}; },
+      get: async () => (docs[p] ? { exists: true, data: () => docs[p] } : { exists: false, data: () => undefined }),
       update: async (patch) => { const id = p.split("/")[1]; window.__writes.push({ path: p, patch }); if (!p.startsWith("jobs/")) { docs[p] = { ...(docs[p] || {}), ...patch }; return; } jobs[id] = { ...jobs[id], ...patch }; emit(); },
       set: async (v) => { const id = p.split("/")[1]; window.__writes.push({ path: p, set: v }); if (!p.startsWith("jobs/")) { docs[p] = v; return; } jobs[id] = { id, ...v }; emit(); },
     }),
   };
-  window.claude = { use: async (n) => (n === "db" ? db : n === "sample" ? { json: async () => ({}) } : n === "downloads" ? { save: async () => {} } : null) };
+  docs["profile/tasks"] = { linkFiller: "trig_test" };
+  window.__docs = docs; window.__mcp = [];
+  const mcp = { callTool: async (server, tool, input) => { window.__mcp.push({ server, tool, input }); return { payload: {} }; } };
+  window.claude = { use: async (n) => (n === "db" ? db : n === "sample" ? { json: async () => ({}) } : n === "downloads" ? { save: async () => {} } : n === "mcp" ? mcp : null) };
 };
 
 const results = [];
@@ -145,6 +149,11 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     check("Escape closes the window", !(await page.isVisible("#add-modal")));
     await page.click("#add-open"); await page.fill("#add-links", "https://example.com/jobs/new-one"); await page.click("#add-go"); await page.waitForTimeout(400);
     check("Adding a link saves it and closes the window", !(await page.isVisible("#add-modal")) && (await page.evaluate(() => window.__writes.some((w) => w.set && w.set.url === "https://example.com/jobs/new-one"))));
+    check("Pasting a link wakes the link filler right away (no timer)", await page.evaluate(() => window.__mcp.length === 1 && window.__mcp[0].server === "Claude Code Remote" && window.__mcp[0].tool === "fire_trigger" && window.__mcp[0].input.trigger_id === "trig_test"), JSON.stringify(await page.evaluate(() => window.__mcp)));
+    await page.evaluate(() => { delete window.__docs["profile/tasks"]; });
+    await page.click("#add-open"); await page.fill("#add-links", "https://example.com/jobs/no-filler"); await page.click("#add-go"); await page.waitForTimeout(400);
+    check("With no link filler set up, a pasted link asks for the description instead of waiting forever", await page.evaluate(() => { const id = (window.__writes.find((w) => w.set && w.set.url === "https://example.com/jobs/no-filler") || {}).path; return !!id && window.__writes.some((w) => w.path === id && w.patch && w.patch.pendingTried === true); }));
+    await page.evaluate(() => { window.__docs["profile/tasks"] = { linkFiller: "trig_test" }; });
     // Paste a job description with no link
     await page.click("#add-open"); await page.evaluate(() => { document.getElementById("add-jdwrap").open = true; }); await page.fill("#add-jd", "Too short"); await page.click("#add-go"); await page.waitForTimeout(200);
     check("A too-short pasted description is refused with a reason", (await page.isVisible("#add-modal")) && /too short/i.test(await page.textContent("#add-status")));

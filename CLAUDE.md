@@ -33,7 +33,7 @@ The page reads the person's name from the master CV. Nothing about any one perso
 
 ## The live page
 - The person's own artifact, published during setup (`SETUP.md` step 1). Its URL is on the artifact card in the setup chat, or find it with the Artifact tool's list action (title "jobmaxxer").
-- Capabilities db, sample, downloads. Omit `capabilities` and `contract` on republish to keep them. Publishing to the same URL keeps the database.
+- Capabilities db, sample, downloads, mcp (Claude Code Remote fire_trigger: wakes the link filler when a link is pasted; its id is in doc profile/tasks.linkFiller). Omit `capabilities` and `contract` on republish to keep them. Publishing to the same URL keeps the database.
 - Published files: index.html, logo.webp, car.webp, fonts/*. This repo mirrors them.
 
 ## Every change, in this order
