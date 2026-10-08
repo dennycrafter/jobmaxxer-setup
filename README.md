@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/banner.png" alt="jobmaxxer: your job search, on autopilot inside Claude" width="100%"></p>
 
-A job tracker that lives inside your own Claude. Every morning it finds new roles for you and grades how well each one fits. In one click it tailors a one-page CV for any job. You can also paste in your own links or job descriptions.
+A job tracker that lives inside your own Claude. Every morning it finds new roles for you and grades how well each one fits based on your preferences and experience. In one click it tailors a one-page CV for any job. You can also paste in your own links or job descriptions.
 
 It runs as a private page (an "artifact") on your Claude account. Your jobs, CV and settings stay there, and nobody else can see them.
 
