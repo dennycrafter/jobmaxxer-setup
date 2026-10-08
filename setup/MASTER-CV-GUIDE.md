@@ -120,8 +120,18 @@ Stop when they've had enough. Tell them they can add more any time (see "Adding 
   - Education (move it above Experience if they graduated in the last year and have little work experience)
   - Skills
   - Optional extra sections only if real: Certifications, Volunteering, Leadership, Awards. Keep the section ids `experience`, `projects`, `education`, `skills` for those four.
-- **Dates:** the same format everywhere: `Jan 2025 – Present`, `Jun 2023 – Aug 2024`. Month and year.
+- **Dates:** the same format everywhere: `Jan 2025 – Present`, `Jun 2023 – Aug 2024`. 3-letter month and year, " – " (en dash, space each side) between them, "Present" for anything still going. Education can be years only or the graduation date (`May 2025`, `Expected May 2026`).
 - **Places:** `City, ST` in the US, `City, Country` abroad. "Remote" if it was remote.
+
+### Order: newest first, everywhere
+
+Hiring managers read top down and spend seconds on it, so what they're doing now goes first.
+- **Inside every section, newest first** (Experience, Education, Projects, Volunteering, everything with dates). Anything still going ("Present") goes on top. Two "Present" entries: the one that started later goes first. Then by end date, newest to oldest; same end date, later start first.
+- **Optional entries too.** They sit in the master in their right place by date, because tailoring keeps the master's order when it brings them in.
+- **Sections** in the order above. Skills always comes after Experience, Projects and Education. Extra sections (Certifications, Volunteering, Awards) go after Experience.
+- **Inside an entry**, bullets go strongest and most relevant first (not by date).
+- When you add something later, put it in its place by date, not at the end.
+- The page check (step 5) flags anything out of order and gives the right order.
 
 ### Bullets
 
@@ -167,12 +177,14 @@ Shape as in SETUP.md step 2 and `setup/example-master-cv.json`. Every entry and 
 The tracker measures the real page the same way it measures tailored CVs. Use it, don't guess.
 
 1. **Before saving**, check it yourself from the repo: write the master CV to a JSON file and run `bash setup/check-cv.sh <file.json> [picture.png]`. It loads the real page with a fake empty database (nothing real is touched) and prints:
-   - `result`: GOOD only when it's one page, filled to the bottom, with no spills
+   - `result`: GOOD only when it's one page, filled to the bottom, with no spills, and no `problems`
+   - `problems`: must be fixed: entries not newest first (with the right order), dates in mixed or unreadable formats, start after end, bullets ending in a period or starting with "I", repeated ids, Skills above other sections, clichés in the summary, no email, personal details (age, nationality) in the header
+   - `lookAt`: not failures, but worth a look: gaps of over 6 months between jobs and study, dates with years only, places without a state or country, past tense in a current job (or present tense in an old one), weak openers ("Responsible for"), the same verb used 3+ times, no phone. Fix the easy ones. Turn gaps and missing details into questions for the person (step 3a): a gap is often a job or project they forgot.
    - `fit`: lines left at the bottom, lines running onto page 2, and every line that spills a word or two (with how many characters to cut)
    - `core`: each printed line with its length and line count
    - `optional`: the hidden lines with their length, ready to bring in
    - a picture of the page (default `setup/cv-preview.png`), worth showing the person
-2. Fix and re-run until it says GOOD. Only with true facts:
+2. Fix and re-run until it says GOOD. Fix every item in `problems` (reorder entries as it says). Only with true facts:
    - Spill: shorten that line to 110 characters or less, or add a true detail from the fact bank so it reaches 165 or more. Never pad with filler.
    - Lines left: move the most relevant optional line(s) into the core. If the bank runs out, go back to the person with a few more questions (step 3c and 3d): a thin CV usually means you haven't asked enough yet.
    - Onto page 2: make the least relevant core line(s) optional, or trim long ones.
@@ -186,7 +198,9 @@ Before calling it done, check:
 - [ ] Every line traces back to something they said (it's in the fact bank).
 - [ ] One page, Page filled, no spills.
 - [ ] Every bullet starts with a verb, has no "I", and has a number where they gave one.
-- [ ] Dates, places, tense and punctuation are consistent.
+- [ ] Every section is newest first ("Present" on top), optional entries included.
+- [ ] Dates, places, tense and punctuation are consistent (the check shows no `problems`).
+- [ ] Every gap in `lookAt` was asked about.
 - [ ] Nothing from the "No" list in the header or anywhere.
 - [ ] Summary has no clichés and no city in the opening.
 - [ ] The optional bank holds the rest of the true, useful facts.
@@ -199,7 +213,7 @@ Then tell them how to download it (Master CV page, "How it prints" card, .docx o
 When the person remembers something new, in any chat:
 1. Read `profile/facts` and `profile/cv` from their tracker (ArtifactData).
 2. Add it to the fact bank (ask a follow-up or two first: numbers, dates, what came of it).
-3. Write it as a bullet (optional, unless it's stronger than a current core line, then swap) and save `profile/cv` with `update` on the `cv` field only, so their tailoring rules stay as they are.
+3. Write it as a bullet (optional, unless it's stronger than a current core line, then swap). A new job, school or project goes in its place by date (newest first), not at the end. Save `profile/cv` with `update` on the `cv` field only, so their tailoring rules stay as they are.
 4. Re-check the page (`bash setup/check-cv.sh`, or the "How it prints" card).
 
 ## Outside the US

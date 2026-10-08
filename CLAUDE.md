@@ -3,7 +3,7 @@
 This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a Claude artifact. Each person publishes their own copy from their own Claude account, with their own empty database.
 
 - First-time setup: follow `SETUP.md`.
-- Anything about the person's master CV (building it, adding to it, fixing it): follow `setup/MASTER-CV-GUIDE.md`. Assume they don't know how to write a good CV; coach them. Check any master CV with `bash setup/check-cv.sh <file.json>` before saving it.
+- Anything about the person's master CV (building it, adding to it, fixing it): follow `setup/MASTER-CV-GUIDE.md`. Assume they don't know how to write a good CV; coach them. Check any master CV with `bash setup/check-cv.sh <file.json>` before saving it (page fit, plus order and consistency from `setup/cv-rules.js`: newest first, dates, bullets, gaps).
 - The person may not be technical. Plain words, short steps, no em dashes.
 
 ## Keep it cheap (the person pays for every token)
@@ -40,7 +40,7 @@ The page reads the person's name from the master CV. Nothing about any one perso
 1. Sync check: `Artifact` read the person's artifact URL. Do NOT Read the file it saves. Run `bash tests/sync-check.sh index.html <saved path>`. On SAME, carry on. On DIFFERENT, the live page changed outside this repo: copy it over with the skeleton stripped (the script shows how) and work from that version.
 2. For anything bigger than a small fix, show the person screenshots of the changed part (made-up data) before publishing. They decide look and feel by seeing it.
 3. Edit `index.html` with small Edits.
-4. `bash tests/run.sh` must print all PASS (about 75 seconds). Add a check to `tests/check.js` when adding a feature. The page's dropdowns are custom (the real selects are hidden): pick options in tests with the `pick(page, selectId, value)` helper.
+4. `bash tests/run.sh` must print all PASS (about 75 seconds; it runs the CV rules check `tests/cv-rules-test.js` first, then the page check). Add a check to `tests/check.js` when adding a feature. The page's dropdowns are custom (the real selects are hidden): pick options in tests with the `pick(page, selectId, value)` helper.
 5. Publish `index.html` to the same artifact URL (pass changed supporting files in `files`).
 
 ## Never

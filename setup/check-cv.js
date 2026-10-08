@@ -6,10 +6,12 @@
 //   fit: "Page filled", lines left at the bottom, lines running onto page 2, and lines that spill a word or two
 //   core: every line on the printed page with its length and how many lines it takes
 //   optional: the hidden optional lines, with their length, to bring in when there is space
+//   problems / lookAt: order (newest first), dates, places, bullets, summary and header checks from setup/cv-rules.js
 // and saves a picture of the page (default setup/cv-preview.png) to show the person.
 const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
+const { reviewCv } = require("./cv-rules");
 
 const ROOT = path.resolve(__dirname, "..");
 const [, , cvPath, shotArg] = process.argv;
@@ -57,13 +59,19 @@ const fake = (c) => {
       return { chip: document.getElementById("m-fit").textContent, fit, core, optional };
     }, cv);
     await page.locator("#m-pwrap").screenshot({ path: shot });
-    const ok = !out.fit.over && !out.fit.spills.length && out.fit.linesLeft < 1;
-    console.log(JSON.stringify({ result: ok ? "GOOD: one full page, no spills" : "NEEDS WORK", chip: out.chip, ...out, picture: shot, pageErrors: errors }, null, 2));
+    const checks = reviewCv(cv);
+    const fits = !out.fit.over && !out.fit.spills.length && out.fit.linesLeft < 1;
+    const ok = fits && !checks.problems.length;
+    const result = ok ? "GOOD: one full page, no spills, newest first, consistent" : "NEEDS WORK" + (fits ? " (page fits; fix the problems below)" : "");
+    console.log(JSON.stringify({ result, chip: out.chip, problems: checks.problems, lookAt: checks.lookAt, ...out, picture: shot, pageErrors: errors }, null, 2));
     if (!ok) console.log(`
 How to fix (only with true facts):
 - A spill: shorten that line to 110 characters or less, or add a true detail so it reaches 165 or more.
 - Lines left: move the most relevant optional line(s) into the core (remove "optional": true).
-- Onto page 2: make the least relevant core line(s) optional, or trim long ones.`);
+- Onto page 2: make the least relevant core line(s) optional, or trim long ones.
+- problems: fix every one (order, dates, punctuation, ids). They make the check fail.
+- lookAt: not failures. Fix the easy ones; turn the rest (gaps, years only, missing phone) into questions for the person.`);
+    else if (checks.lookAt.length) console.log("\nWorth a look (not failures): see lookAt above. Turn gaps and missing details into questions for the person.");
     process.exitCode = ok ? 0 : 1;
   } finally { await browser.close(); fs.rmSync(file, { force: true }); }
 })().catch((e) => { console.error("Check failed to run:", e.message); process.exit(2); });

@@ -25,7 +25,7 @@ If a later version of this repo is published to the same URL, the database is ke
 
 ## 2. Build the master CV
 
-**Read `setup/MASTER-CV-GUIDE.md` now and follow it.** Assume the person has never written a good CV: don't just copy what they send. Collect whatever they have (old CV, LinkedIn, a brain dump, or nothing), interview them a few questions at a time, save every answer to the fact bank (`profile/facts`), and write a true, US-standard, one-page master CV that fills the page with no lines spilling a word. This is the most important step: every tailored CV is built only from it. Take the time it needs.
+**Read `setup/MASTER-CV-GUIDE.md` now and follow it.** Assume the person has never written a good CV: don't just copy what they send. Collect whatever they have (old CV, LinkedIn, a brain dump, or nothing), interview them a few questions at a time, save every answer to the fact bank (`profile/facts`), and write a true, US-standard, one-page master CV that fills the page with no lines spilling a word, with every section newest first ("Present" on top) and dates written the same way everywhere. `bash setup/check-cv.sh` checks all of that. This is the most important step: every tailored CV is built only from it. Take the time it needs.
 
 Save the master CV with the ArtifactData tool:
 
