@@ -909,7 +909,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
 
 (() => {
   const STATUS_TAB = { new: "queue", applied: "applied", interview: "interview", offer: "interview", rejected: "closed", skipped: "closed" };
-  // Links you add yourself live in "My links" until he acts on them.
+  // Links you add yourself live in "My links" until the person acts on them.
   const tabOf = (j) => (j.manual && (j.status || "new") === "new" ? "mine" : STATUS_TAB[j.status] || "queue");
   const STATUS_LABEL = { new: "New", applied: "Applied", interview: "Interview", offer: "Offer", rejected: "Rejected", skipped: "Skipped" };
   let jobs = [], db = null, sample = null, downloads = null, tab = "queue", writable = true;
@@ -1499,7 +1499,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
     ddSyncAll();
     const sortBy = $("f-sort").value;
     // same day: the exact time of applying (appliedAt, saved since v39) decides. Older records don't have it, so the time
-    // the CV was tailored stands in (he usually applies right after); with neither, A to Z.
+    // the CV was tailored stands in (people usually apply right after); with neither, A to Z.
     const when = (j) => String(j.applied || j.found || "");
     const at = (j) => Number(j.appliedAt) || (j.tailor && Date.parse(j.tailor.at)) || 0;
     const bySort = (a, b) => sortBy === "new" ? when(b).localeCompare(when(a)) || at(b) - at(a) || String(a.company).localeCompare(String(b.company))
@@ -1599,7 +1599,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
     // Full master entries (including hidden optional bullets) are the only source of facts.
     const full = {}; master.sections.forEach((s) => s.entries.forEach((e) => (full[e.id] = e)));
     const out = JSON.parse(JSON.stringify(master));
-    // optional entries (e.g. St. Kilian's, Music) appear only when the draft gives them bullets
+    // optional entries (e.g. an old school or a side hobby) appear only when the draft gives them bullets
     const wantEntry = (e) => !e.optional || !!(t && t.bullets && Array.isArray(t.bullets[e.id]) && t.bullets[e.id].length);
     out.sections.forEach((s) => { s.entries = s.entries.filter(wantEntry); s.entries.forEach((e) => (e.bullets = e.bullets.filter((b) => !b.optional))); });
     const tidy = () => out.sections.forEach((s) => (s.entries = s.entries.filter((e) => e.bullets.length)));
@@ -1701,7 +1701,7 @@ ${SHAPE}
 Include a "bullets" key for EVERY entry id (${entryIds()}), listing that entry's bullets in the order you want, each with "src" set to the master bullet id it rewrites. Links use [label](url) exactly as in the master.`;
   }
   function chatContext(j, t) {
-    return `You are helping ${who()} refine their CV for one job and answer his questions about it. The rules below are hard limits.
+    return `You are helping ${who()} refine their CV for one job and answer their questions about it. The rules below are hard limits.
 
 ${rules}
 
@@ -1715,7 +1715,7 @@ ${jobBlock(j)}
 CURRENT DRAFT (tailoring JSON applied on top of the master):
 ${t ? JSON.stringify(t) : "(none yet: the master CV as is)"}
 
-For every message from them, reply with ONLY one JSON object: {"reply":"a short, plain-language answer with no em dashes; use \\n line breaks: a blank line between paragraphs and \"- \" at the start of list items","update":null,"remember":""}. Put a short standing rule in "remember" ONLY when his message states a general preference that should apply to all his future CVs (for example "don't call me X", "never lead with Y", "Z overstates it"); write it as a clear instruction. Leave it empty for one-off edits to this CV. When he asks for a change to the CV, put a COMPLETE tailoring object in "update" (same shape as ${SHAPE}, with a "bullets" key for every entry id: ${entryIds()}). If he tells you a new fact that is not in the master CV, do not put it in the draft; say he should add it to his master CV first.`;
+For every message from them, reply with ONLY one JSON object: {"reply":"a short, plain-language answer with no em dashes; use \\n line breaks: a blank line between paragraphs and \"- \" at the start of list items","update":null,"remember":""}. Put a short standing rule in "remember" ONLY when their message states a general preference that should apply to all their future CVs (for example "don't call me X", "never lead with Y", "Z overstates it"); write it as a clear instruction. Leave it empty for one-off edits to this CV. When they ask for a change to the CV, put a COMPLETE tailoring object in "update" (same shape as ${SHAPE}, with a "bullets" key for every entry id: ${entryIds()}). If they tell you a new fact that is not in the master CV, do not put it in the draft; say they should add it to their master CV first.`;
   }
 
   // ---------- drawer ----------
@@ -2097,7 +2097,7 @@ ${cands.map((b, i) => `- ${b.id} (${b.entry}${b.newEntry ? ", entry not shown ye
 TASK: return ONE complete tailoring object in the same shape as the current draft (${SHAPE}, with a "bullets" key for every entry id: ${entryIds()}) that:
 1. fixes every spilling line listed above;
 2. leaves at most one empty line at the bottom without going onto a second page. To fill space, add the most relevant bullets from the list (core and optional first; a deep-tier bullet only if it is clearly strong evidence for this job, never just to fill space), or let a useful bullet run one line longer with real detail from the master. To fix overflow, cut or shorten the least relevant lines;
-3. keeps everything else exactly as it is, including his standing preferences. Never invent facts.
+3. keeps everything else exactly as it is, including their standing preferences. Never invent facts.
 Add one short note to "changes" saying what you changed to fit the page. Reply with ONLY the JSON object.`;
   }
   // Up to `passes` rounds with Claude. A result is kept only if the measured page is better than before.
@@ -2248,12 +2248,12 @@ Add one short note to "changes" saying what you changed to fit the page. Reply w
 ${v.voice || "Write in plain, direct first person. Short sentences. No em dashes."}
 
 ${prefsBlock()}
-HIS OWN PAST WRITING (match the tone):
+THEIR OWN PAST WRITING (match the tone):
 ${samples}
 
 ${v.stories || ""}
 
-CV HE IS SENDING FOR THIS JOB:
+CV THEY ARE SENDING FOR THIS JOB:
 ${cvText}
 
 JOB:
@@ -2261,12 +2261,12 @@ ${jobBlock(j)}
 
 RULES:
 - Never invent employers, titles, numbers, tools, customers or outcomes. Keep every fact's scope exactly as given.
-- If a question needs something not in these facts (salary expectations, work authorization, visa or sponsorship status, start date, notice period, references, address, how he heard about the job, demographic or yes/no eligibility questions), put [FILL IN: what is needed] instead of guessing.
+- If a question needs something not in these facts (salary expectations, work authorization, visa or sponsorship status, start date, notice period, references, address, how they heard about the job, demographic or yes/no eligibility questions), put [FILL IN: what is needed] instead of guessing.
 - Tie "why this company / why this role" answers to specific things in the job posting.
 - Respect any word or character limit stated in the question or by them. Otherwise 60 to 120 words per answer.
 - Use line breaks (\\n) between paragraphs. No em dashes. No bold or markdown.
 
-Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one line","a":"the answer"}],"note":"optional one short line on anything he should check, or empty","remember":""}. Put a short standing rule in "remember" ONLY when his message states a general preference for all future answers or CVs; leave it empty otherwise. One item per question he pasted, in order. For follow-ups (shorter, change tone, redo one answer), return the revised items.`;
+Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one line","a":"the answer"}],"note":"optional one short line on anything they should check, or empty","remember":""}. Put a short standing rule in "remember" ONLY when their message states a general preference for all future answers or CVs; leave it empty otherwise. One item per question they pasted, in order. For follow-ups (shorter, change tone, redo one answer), return the revised items.`;
   }
   async function doAnswers() {
     const j = job(); const text = $("a-q").value.trim();

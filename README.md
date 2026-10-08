@@ -12,7 +12,7 @@ It runs as a private page (an "artifact") on your own Claude account. Your jobs,
    > Set up jobmaxxer for me from the GitHub repo dennycrafter/jobmaxxer-setup. Follow SETUP.md in the repo.
 
 3. Claude publishes the tracker, then asks for a few things:
-   - your CV (attach the file or paste the text)
+   - your CV (attach the file or paste the text). It doesn't need to be good, or even exist: Claude asks you questions about what you've done and builds a proper one-page US-style CV with you
    - what kinds of jobs you want and at what level (anything: it doesn't have to be the same jobs as anyone else)
    - the cities you want jobs in, and on-site, hybrid or remote
    - full-time, part-time, contract or internship
@@ -27,7 +27,7 @@ It runs as a private page (an "artifact") on your own Claude account. Your jobs,
 - **My links**: paste a job link or a whole job description. The details fill in by themselves.
 - **Profile menu**: your master CV, your preferences (rules for how your CV is written), and search settings, where you can add, remove or pause the kinds of jobs you want any time.
 
-Tailoring only ever uses facts from your master CV. If something is missing, add it to the master CV first.
+Tailoring only ever uses facts from your master CV. If you remember something later (an old job, a club, a number), open any Claude chat and say "Add this to my jobmaxxer master CV: ...". Claude asks a question or two and adds it.
 
 ## Good to know
 

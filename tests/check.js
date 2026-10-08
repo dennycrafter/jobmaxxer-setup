@@ -581,7 +581,8 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     await rt.close();
 
     // ---------- a brand new copy: empty database, nothing set up yet ----------
-    check("The page has no personal details baked in", !/denis|popov|\bUCD\b|hitchhik|starpool|bitpilot|arrive logistics/i.test(html.replace(/data:image\/webp;base64,[A-Za-z0-9+/=]+/g, "")));
+    check("The page has no personal details baked in", !/denis|popov|\bUCD\b|hitchhik|starpool|bitpilot|arrive logistics|kilian/i.test(html.replace(/data:image\/webp;base64,[A-Za-z0-9+/=]+/g, "")));
+    check("The page talks about the person without he/his/him", !/\b(he|his|him|himself)\b/i.test(html.replace(/data:image\/webp;base64,[A-Za-z0-9+/=]+/g, "")));
     const fresh = await browser.newPage({ viewport: { width: 1280, height: 900 } });
     const frErr = []; fresh.on("pageerror", (e) => frErr.push(e.message));
     await fresh.addInitScript(fakeClaude, { jobs: [] });

@@ -21,7 +21,9 @@ If a later version of this repo is published to the same URL, the database is ke
 
 ## 2. Build the master CV
 
-Ask the person for their CV (file or pasted text). Then turn it into the master CV JSON and save it with the ArtifactData tool:
+**Read `setup/MASTER-CV-GUIDE.md` now and follow it.** Assume the person has never written a good CV: don't just copy what they send. Collect whatever they have (old CV, LinkedIn, a brain dump, or nothing), interview them a few questions at a time, save every answer to the fact bank (`profile/facts`), and write a true, US-standard, one-page master CV that fills the page with no lines spilling a word. This is the most important step: every tailored CV is built only from it. Take the time it needs.
+
+Save the master CV with the ArtifactData tool:
 
 - doc `profile/cv`, action `set`, data `{"cv": <master CV>, "rules": "", "updated": "<ISO date>"}`
 - `rules` empty means the page uses its built-in starter tailoring rules. The person can edit them later on the Master CV page.
@@ -46,15 +48,26 @@ Shape (see `setup/example-master-cv.json` for a full example):
 }
 ```
 
-Rules for building it:
-- Copy facts exactly. Do not improve, add numbers, or invent anything. Tailoring can only ever use what is in here.
+Rules for building it (the guide has the full detail):
+- Only true facts from the person. Never invent, round up, or upgrade anything. Tailoring can only ever use what is in here.
 - Every entry and every bullet needs a short id that is unique across the whole CV.
 - Links are written `[label](url)`.
-- Leave out sections the CV doesn't have (for example no projects). Keep the section ids `experience`, `projects`, `education`, `skills` when they exist.
-- Extra true lines that don't fit one page can go in as `"optional": true` bullets. Tailoring adds them only when they help a job.
-- The plain master should fit on one page with a few lines to spare.
+- Leave out sections they don't have (for example no projects). Keep the section ids `experience`, `projects`, `education`, `skills` when they exist.
+- Core lines fill exactly one page. Every other true, useful line goes in as `"optional": true`. Tailoring adds those when they help a job.
+- Bullets are up to 110 characters (one line) or 165 to 225 (two lines), never in between.
 
-Also ask (optional) how they like to write, and save `profile/voice` = `{"voice": "...", "samples": [], "stories": ""}`. Skip it if they'd rather not; the page has a sensible default.
+Also save these starter preferences, so every tailored CV and answer follows them (the person can remove or add more on the "Your preferences" page). ArtifactData doc `profile/prefs`, action `set`:
+
+```
+{"items": [
+  {"id": "p1", "text": "Never invent details, numbers or tasks that are not in the master CV, even small ones that sound plausible.", "added": "<YYYY-MM-DD>"},
+  {"id": "p2", "text": "Plain, confident wording. Nothing over the top or salesy, no cliches like hard-working, passionate or results-driven.", "added": "<YYYY-MM-DD>"},
+  {"id": "p3", "text": "The page should be full: no empty space at the bottom. Add a relevant true line back rather than leave a gap.", "added": "<YYYY-MM-DD>"},
+  {"id": "p4", "text": "No line should spill one or two words onto a new line.", "added": "<YYYY-MM-DD>"}
+ ], "updated": "<ISO date>"}
+```
+
+Also ask (optional) how they like to write, and save `profile/voice` = `{"voice": "...", "samples": [], "stories": ""}`. Put two or three of their best stories from the interview in `stories` (short, true, in their words): application answers use them. Skip the voice line if they'd rather not; the page has a sensible default.
 
 Ask them to open the tracker, go to the profile menu (top right), Master CV and voice, and check it looks right. They can edit any line there.
 
@@ -139,6 +152,7 @@ Only if the person has their own private GitHub repo for it and wants one. It co
 Tell the person, briefly:
 - the tracker is ready (the link is on the artifact card)
 - the first jobs arrive after tomorrow's morning search, and they can add links or descriptions any time in My links
+- whenever they remember something new for their CV (an old job, a win, a number), they can open any Claude chat and say "Add this to my jobmaxxer master CV: ..." (with this repo attached, or the tracker link). Claude follows `setup/MASTER-CV-GUIDE.md`, "Adding more later"
 - to check their master CV, and that "Your preferences" (profile menu) is where rules like "never call me X" end up; the page also saves them when they say so in the CV chat
 
 ## Later changes

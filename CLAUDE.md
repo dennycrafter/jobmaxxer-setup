@@ -3,6 +3,7 @@
 This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a Claude artifact. Each person publishes their own copy from their own Claude account, with their own empty database.
 
 - First-time setup: follow `SETUP.md`.
+- Anything about the person's master CV (building it, adding to it, fixing it): follow `setup/MASTER-CV-GUIDE.md`. Assume they don't know how to write a good CV; coach them.
 - The person may not be technical. Plain words, short steps, no em dashes.
 
 ## Keep it cheap (the person pays for every token)
@@ -25,6 +26,7 @@ In the artifact's own database (ArtifactData on the artifact URL):
 - `profile/cv`: `{cv, rules}`, the master CV and tailoring rules (empty rules = built-in starter rules).
 - `profile/voice`: writing voice, samples, stories for application answers.
 - `profile/prefs`: `{items:[{id,text,added}]}`, standing preferences, added from the page.
+- `profile/facts`: `{items:[{id,about,text,added}]}`, the fact bank: everything the person has said about their experience, in their words. The master CV is built from it. The page doesn't read it.
 - `profile/search`: cities, work setups (`arrangements`), `jobTypes`, `level`, the person's own `roleTypes` ([{id,name,ex}]) and which are on (`roles`), limits, skip list, `about`. The morning search task reads it every run. With no `roleTypes` saved the page uses the starter list `ROLE_TYPES`.
 
 The page reads the person's name from the master CV. Nothing about any one person is hardcoded; keep it that way (a check fails if names creep in).
