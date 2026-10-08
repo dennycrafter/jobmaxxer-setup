@@ -27,7 +27,7 @@ Open a new chat at [claude.ai](https://claude.ai) or in the desktop app, attach 
 > 3. For my CV, follow setup/MASTER-CV-GUIDE.md. Start with what you already know about me from memory and past chats, use any files I attach, then interview me so I can add more. Never invent anything.
 > 4. Keep everything here in the chat and talk to me in plain, simple words.
 
-Claude publishes your tracker, builds your CV with you, asks what jobs and cities you want, and sets up the morning search. When it's done, open the tracker and you're ready.
+Claude publishes your tracker, builds your CV with you, asks what jobs and cities you want and how many applications a day you're aiming for, and sets up the morning search on the days and time you pick. When it's done, open the tracker and you're ready.
 
 ## Using it
 

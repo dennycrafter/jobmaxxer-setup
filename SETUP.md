@@ -84,6 +84,10 @@ Work out what they actually want. Their jobs can be nothing like the starter lis
 - Which cities? (any number) And on-site, hybrid, remote: which are OK?
 - A few lines about their background and what they're looking for.
 - Any companies to skip? How many years of experience is too many (or no limit)?
+- Their goals, asked together in one go:
+  - How many applications a day do you want to aim for? (Their daily goal and streak. Suggest 5 to 10 if they're unsure; 30 is a lot.)
+  - How many new jobs should the morning search find? (Suggest about 3 times their daily goal. More jobs use more of their Claude plan.)
+  - Which days should it search: every day, or weekdays only? And what time should new jobs be ready? (Default 6:55am.)
 
 Then turn their answer into their own role types: 3 to 10 groups, each with a short name and a few example job titles. Example for a nurse: `{"id":"icu","name":"ICU and critical care nursing","ex":"ICU nurse, critical care RN"}`. Only keep starter types (listed as `ROLE_TYPES` in `index.html`) if they really fit. Ids are short lowercase slugs, unique.
 
@@ -96,19 +100,19 @@ Save with ArtifactData, doc `profile/search`, action `set`:
  "roleTypes": [{"id": "icu", "name": "ICU and critical care nursing", "ex": "ICU nurse, critical care RN"}],
  "roles": ["icu"],                               // the role type ids that are switched on
  "maxYears": 3,                                  // skip roles asking for this many years or more; 99 = no limit
- "dailyTarget": 30, "maxNew": 40, "skipCompanies": [],
- "about": "their few lines", "refresh": "new roles daily 6:55am", "updated": "<ISO date>"}
+ "dailyTarget": 10, "maxNew": 30, "skipCompanies": [],   // their daily goal and new jobs per search
+ "about": "their few lines", "refresh": "new roles daily 6:55am", "updated": "<ISO date>"}   // refresh matches their days and time, e.g. "new roles weekdays 7:30am"
 ```
 
-Read the settings back to them in the chat in plain words ("You'll get entry-level sales and customer success jobs in Austin, full-time, on-site or hybrid, up to 40 a day") and get a yes. Mention once that they can change these later on the Search settings page, or just ask in a chat.
+Read the settings back to them in the chat in plain words ("You'll get up to 30 new entry-level sales and customer success jobs in Austin each weekday at 7:30am, full-time, on-site or hybrid. Your goal is 10 applications a day.") and get a yes. Mention once that they can change these later on the Search settings page, or just ask in a chat.
 
 ## 4. Scheduled tasks
 
 Create these with the scheduling tool, in the person's time zone (ask if you don't know it). Replace ARTIFACT_URL with the real URL. Tell them in one line each what you set up.
 
-### a. Morning job search (daily, about 6:55am)
+### a. Morning job search (on the days and at the time they chose, default every day 6:55am)
 
-Name: "jobmaxxer job sourcing". If the time changes, update `refresh` in profile/search to match (for example "new roles daily 7:30am").
+Name: "jobmaxxer job sourcing". Weekdays only = cron day field `1-5`, every day = `*`. Make sure `refresh` in profile/search matches the days and time (for example "new roles weekdays 7:30am"). If they change days or time later, update both the task and `refresh`.
 
 Prompt:
 
