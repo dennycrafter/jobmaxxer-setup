@@ -5,12 +5,19 @@ This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a C
 - First-time setup: follow `SETUP.md`.
 - The person may not be technical. Plain words, short steps, no em dashes.
 
-## What's in here
-- `index.html`: the whole page (styles, layout, script). Published as the artifact.
-- `logo.webp`, `car.webp`: the logo images (the page embeds them; publish them anyway).
-- `fonts/`: Liberation Sans, used to build the PDF download.
-- `tests/`: the page check (`bash tests/run.sh`, made-up data only).
-- `setup/example-master-cv.json`: the shape of a master CV.
+## Keep it cheap (the person pays for every token)
+- `index.html` is about 270KB. Never Read it whole and never read the live page into the chat.
+- Find the spot with `grep -n "<word>" index.html | cut -c1-200`, then Read only those lines with offset/limit. Always pipe grep through `cut`: line ~523 holds the logos as one 64,000-character line.
+- Leave the logo line alone. The logos are embedded on purpose: separate image or script files do not load in the Claude mobile app. Keep everything in this one file.
+- `tests/check.js` is about 63KB: grep it too, don't Read it whole.
+- Only open the screenshots for the part you changed, not all of them.
+- Small fix: no branch, no screenshots, run the check once at the end. Not after every edit.
+
+## Map: where things live in index.html
+- Lines ~1 to 519: styles. Each section starts with a `/* ... */` comment: top bar, scoreboard, streak, bell, paste mode, goal celebration, dropdowns, job list, notes, Tailor drawer, CV zoom, CV page, preferences, add link window, settings, master CV editor.
+- Lines ~520 to 760: layout (top bar, list, drawer, windows, settings). Line ~523 is the logo line.
+- Lines ~761 to the end: script. Sections start with `// ---------- name ----------`: CV .docx builder, CV .pdf builder, search settings, top bar and profile menu, master CV and voice editor, custom dropdowns, game layer, attention bell and paste mode, list, tailoring core, drawer, links you add yourself, page fit, preferences, events, boot.
+- Jump to a section: `grep -n -- '---------- ' index.html | cut -c1-120` or `grep -n '^/\*' index.html | cut -c1-120`. Line numbers shift, so always grep first.
 
 ## Where the data lives
 In the artifact's own database (ArtifactData on the artifact URL):
@@ -22,12 +29,17 @@ In the artifact's own database (ArtifactData on the artifact URL):
 
 The page reads the person's name from the master CV. Nothing about any one person is hardcoded; keep it that way (a check fails if names creep in).
 
-## Changing the page
-1. Read the live page with the Artifact tool (read action on the person's artifact URL) and compare it with `index.html`. If they differ, keep the live version as the starting point.
-2. For bigger or visual changes, show the person screenshots (made-up data) before publishing.
-3. Edit `index.html`. Line ~513 holds the embedded logos and is very long: change it with a script, not the Edit tool.
-4. `bash tests/run.sh` must print all PASS. Add a check to `tests/check.js` for a new feature. Dropdowns are custom: use the `pick(page, selectId, value)` helper.
-5. Publish `index.html` to the same artifact URL (omit `capabilities` to keep them). Publishing to the same URL keeps the database.
+## The live page
+- The person's own artifact, published during setup (`SETUP.md` step 1). Its URL is on the artifact card in the setup chat, or find it with the Artifact tool's list action (title "jobmaxxer").
+- Capabilities db, sample, downloads. Omit `capabilities` and `contract` on republish to keep them. Publishing to the same URL keeps the database.
+- Published files: index.html, logo.webp, car.webp, fonts/*. This repo mirrors them.
+
+## Every change, in this order
+1. Sync check: `Artifact` read the person's artifact URL. Do NOT Read the file it saves. Run `bash tests/sync-check.sh index.html <saved path>`. On SAME, carry on. On DIFFERENT, the live page changed outside this repo: copy it over with the skeleton stripped (the script shows how) and work from that version.
+2. For anything bigger than a small fix, show the person screenshots of the changed part (made-up data) before publishing. They decide look and feel by seeing it.
+3. Edit `index.html` with small Edits.
+4. `bash tests/run.sh` must print all PASS (about 75 seconds). Add a check to `tests/check.js` when adding a feature. The page's dropdowns are custom (the real selects are hidden): pick options in tests with the `pick(page, selectId, value)` helper.
+5. Publish `index.html` to the same artifact URL (pass changed supporting files in `files`).
 
 ## Never
 - Delete the artifact: the database goes with it.

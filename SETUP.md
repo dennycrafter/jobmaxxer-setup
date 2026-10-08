@@ -4,6 +4,8 @@ You are setting up a fresh copy of the jobmaxxer job tracker on this person's ow
 
 Use a task list so they can see progress.
 
+Keep it cheap: they pay for every token. `index.html` is about 270KB, with one 64,000-character logo line. Don't read it into the chat or open it to look around; publish it by its path. If the Artifact tool insists on reading a file before its first publish, that is the only time. Leave the embedded logos as they are (separate image files don't load in the Claude mobile app).
+
 ## 1. Publish the tracker
 
 1. Get the files: clone this repo (attach it to the session if needed), or use the files the person attached.
@@ -138,3 +140,7 @@ Tell the person, briefly:
 - the tracker is ready (the link is on the artifact card)
 - the first jobs arrive after tomorrow's morning search, and they can add links or descriptions any time in My links
 - to check their master CV, and that "Your preferences" (profile menu) is where rules like "never call me X" end up; the page also saves them when they say so in the CV chat
+
+## Later changes
+
+Whenever the person asks to change the tracker after setup (in this chat or a new one), follow `CLAUDE.md` in this repo: the "Keep it cheap" rules, the map of where things live in `index.html`, and the sync check (`bash tests/sync-check.sh index.html <saved live file>`) instead of reading the page. grep for the spot, Read only those lines, make small edits, run `bash tests/run.sh` once at the end, then republish to the same artifact URL.
