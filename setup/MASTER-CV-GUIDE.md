@@ -66,6 +66,30 @@ Go in this order. Save to the bank after each round.
 - Any promotion, award, ranking, top performer, extra responsibility, or being asked to train others?
 - What would your manager say you were best at? (Then ask for the proof behind it.)
 
+**b2. Go deeper with questions for that kind of role.** The general questions above miss most of what makes a CV strong. For each entry, also ask the questions for its kind of role below (an entry can match more than one). Ask them as open questions, a few at a time.
+
+- **Retail, shop floor, customer service:** How many customers a day? Did you hit or beat sales, card sign-up or add-on targets (by how much, how often, ranked against others)? Did you handle the till, cash counts, opening or closing? Returns, complaints, refunds? Stock, deliveries, visual displays? Did you train anyone or cover for a supervisor? Any mystery shopper scores or "employee of the month"?
+- **Restaurants, bars, hospitality, events:** How busy (covers, orders, guests a day)? Which stations or roles? Did you lead shifts, open or close, handle cash? Train new staff? Food safety or alcohol certificates? Biggest event or busiest day you handled? Anything you changed that made service faster?
+- **Delivery, driving, warehouse, logistics:** How many deliveries, stops or orders a day or in total? Ratings, accuracy, on-time rate? Routes or areas planned yourself? Vehicles or equipment (forklift, van, scanner)? Licenses? Any safety record, damage-free streak, or peak-season records?
+- **Sales, business development, partnerships:** What did you sell, to whom, at what price? Quota and how you did against it (percent, rank)? How many calls, emails or meetings a week? Deals closed and their size? Pipeline you built? Tools (Salesforce, HubSpot, LinkedIn)? Any new market, account or channel you opened?
+- **Customer success, support, account management:** How many customers or tickets? Response or resolution times? Satisfaction scores (CSAT, NPS, reviews)? Renewals, upsells, churn saved? Escalations handled? Help docs, macros or processes you wrote?
+- **Operations, admin, office, coordination:** What did you keep running day to day? Schedules, rotas, bookings, inventory, invoices, data entry? How much (people, orders, budget)? Anything you organized, sped up, cleaned up or automated? Tools (Excel, Sheets, Notion, ERP)?
+- **Marketing, social media, content, communications:** Which channels? Audience or follower size and growth? Views, engagement, sign-ups, sales from it? Campaigns you ran end to end? Budget? Tools (Canva, Meta Ads, Google Analytics, Mailchimp)? Anything that went viral or won something?
+- **Software, data, engineering, technical:** What did you build or fix, for whom, and how many people use it? Languages, frameworks, tools? Scale (users, data size, requests, speed)? Measurable results (faster, cheaper, fewer errors)? Links to code, apps or demos? Hackathons?
+- **Design, video, photo, music, creative:** What did you make, for whom? Paid or unpaid (be exact)? Audience, views, sales, downloads? Tools? A portfolio link? Any publications, exhibitions, releases or awards?
+- **Finance, accounting, analysis:** What did you track, model or report? Size of budgets or numbers handled? Tools (Excel level, QuickBooks, SQL)? Errors caught, money saved, time saved? Certifications or exams?
+- **Healthcare, care work, childcare, coaching, teaching, tutoring:** How many patients, kids, students or clients? Ages or needs? Results (grades, progress, retention)? Certifications (CPR, first aid, background checks)? Plans, lessons or programs you created?
+- **Trades, construction, manufacturing, maintenance:** Which jobs, tools and machines? Size of projects? Safety record and certifications? Quality or speed improvements? Licenses?
+- **Founder, freelance, side business, selling online:** What was it, when, and is it still running? Customers or users, revenue (only if real and they're happy to share), growth? What did you do yourself (build, sell, market, ship)? Partners or investors? Be exact about paid, unpaid, pre-revenue, part-time.
+- **Clubs, societies, sports, volunteering, student roles:** Role and title? Members or people involved? Events run, money raised, sponsors won? Competitions, rankings, captaincies? Anything you started?
+- **Internships and short jobs:** What was the project? Who used your work? What did you hand over at the end? Any offer to return or a reference?
+
+Then for every entry: "Anything else from that job you're proud of, or that a manager thanked you for?"
+
+For any kind of role not listed: think about what a hiring manager for the person's *target* job would want proof of, and ask for that.
+
+**How to ask without putting words in their mouth.** These are questions, not suggestions. Never offer a guessed answer ("so you probably handled about 50 customers?"). If they say yes to something, ask for the specifics before writing it: how many, how often, when, what happened as a result. If they can't give specifics, write it plainly without numbers, or leave it out. A true plain line beats an impressive invented one, every time.
+
 **c. Memory joggers.** People forget the good stuff. Ask about:
 - clubs, societies, teams, captaincies, organizing events
 - volunteering, fundraising, mentoring, tutoring
@@ -77,6 +101,8 @@ Go in this order. Save to the bank after each round.
 - anything they're quietly proud of
 
 **d. Fill the gaps for their target jobs.** Look at what those jobs usually ask for. For each thing, ask "Have you ever done anything like X?" Often the answer is yes and they never thought to mention it.
+
+**e. Coverage check before writing.** Go down this list and ask about anything still blank: every job with dates, title, place; numbers for each main job; tools and software; languages; education with dates and any honors; certifications and licenses; projects; volunteering and clubs; awards and rankings; links (LinkedIn, portfolio, GitHub); phone and email they want on the CV; what jobs they're going for.
 
 Stop when they've had enough. Tell them they can add more any time (see "Adding more later").
 
@@ -149,7 +175,7 @@ The tracker measures the real page the same way it measures tailored CVs. Use it
 
 ## 6. Check it with the person
 
-Show it one section at a time, in plain text. For each, ask: "Is every word true? Anything you'd feel awkward explaining in an interview? Anything missing?" Fix, save, re-check the page.
+Do this in the chat, not on the page. Send the picture from `setup/check-cv.sh` (with whatever file-sending tool you have) and show the text one section at a time. For each, ask: "Is every word true? Anything you'd feel awkward explaining in an interview? Anything missing?" Fix, save, re-check the page.
 
 Before calling it done, check:
 - [ ] Every line traces back to something they said (it's in the fact bank).

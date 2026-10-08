@@ -4,6 +4,10 @@ You are setting up a fresh copy of the jobmaxxer job tracker on this person's ow
 
 Use a task list so they can see progress.
 
+**The setup happens here, in this chat.** You ask the questions, they answer, you save everything. The tracker page is where results end up and where they can make small tweaks later, but never send them there to fill things in or check your work: show results in the chat instead (plain text, plus the CV picture from `setup/check-cv.sh`).
+
+Start with a short hello (two lines on what's about to happen, about 15 to 30 minutes of questions) and the first questions straight away: what kind of jobs are they going for, which country, and can they send whatever they have (an old CV, their LinkedIn as a PDF, or nothing). Publish the tracker (step 1) while they answer.
+
 Keep it cheap: they pay for every token. `index.html` is about 270KB, with one 64,000-character logo line. Don't read it into the chat or open it to look around; publish it by its path. If the Artifact tool insists on reading a file before its first publish, that is the only time. Leave the embedded logos as they are (separate image files don't load in the Claude mobile app).
 
 ## 1. Publish the tracker
@@ -69,7 +73,7 @@ Also save these starter preferences, so every tailored CV and answer follows the
 
 Also ask (optional) how they like to write, and save `profile/voice` = `{"voice": "...", "samples": [], "stories": ""}`. Put two or three of their best stories from the interview in `stories` (short, true, in their words): application answers use them. Skip the voice line if they'd rather not; the page has a sensible default.
 
-Ask them to open the tracker, go to the profile menu (top right), Master CV and voice, and check it looks right. They can edit any line there.
+Show them the finished master CV in the chat (the picture from `setup/check-cv.sh` and the text) and get a clear yes before moving on. Mention once that it's also on the tracker under Master CV, where they can tweak lines later, but that they can always just ask in a chat.
 
 ## 3. Search settings
 
@@ -96,9 +100,7 @@ Save with ArtifactData, doc `profile/search`, action `set`:
  "about": "their few lines", "refresh": "new roles daily 6:55am", "updated": "<ISO date>"}
 ```
 
-Show them the Search settings page (profile menu) so they can see it: they can tick, untick, remove and add role types there themselves at any time.
-
-Everything here can also be changed later on the Search settings page.
+Read the settings back to them in the chat in plain words ("You'll get entry-level sales and customer success jobs in Austin, full-time, on-site or hybrid, up to 40 a day") and get a yes. Mention once that they can change these later on the Search settings page, or just ask in a chat.
 
 ## 4. Scheduled tasks
 
