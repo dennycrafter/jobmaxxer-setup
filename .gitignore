@@ -3,3 +3,5 @@ tests/screenshots/
 node_modules/
 data/
 .DS_Store
+.check-cv-page.html
+setup/cv-preview.png

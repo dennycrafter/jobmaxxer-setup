@@ -299,6 +299,21 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     await page.click("#me-btn"); await page.click('#me-menu [data-tab="cv"]'); await page.waitForTimeout(200);
     check("Master CV page opens and hides the job list", (await page.isVisible("#cvedit")) && !(await page.isVisible("#list")) && (await page.textContent("#viewtitle")) === "Master CV and voice");
     check("Master CV editor shows the CV (name and bullets)", (await page.inputValue('#cv-form input[data-cv="name"]')) === "ALEX SAMPLE" && (await page.$$("#cv-form .bul textarea")).length >= 6);
+    // Master CV print preview: same page checks as a tailored CV
+    await page.waitForTimeout(400);
+    const mfit = await page.$eval("#m-paper", (p) => (p.dataset.fit ? JSON.parse(p.dataset.fit) : null));
+    check("Master CV page shows a print preview with a fit chip", (await page.isVisible("#m-paper .nm")) && /One page|Page filled|onto page 2/.test(await page.textContent("#m-fit")) && !!mfit, await page.textContent("#m-fit"));
+    check("Preview shows only core lines (optional ones are hidden)", !(await page.$('#m-paper li[data-id="acme3"]')) && !!(await page.$('#m-paper li[data-id="acme1"]')));
+    check("Preview hint says what to do about empty space", /empty line|One full page/.test(await page.textContent("#m-hint")), await page.textContent("#m-hint"));
+    await page.click('#cv-form button[data-optbul="0.0.2"]'); await page.waitForTimeout(450);
+    const eyeOn = !!(await page.$('#m-paper li[data-id="acme3"]'));
+    await page.click('#cv-form button[data-optbul="0.0.2"]'); await page.waitForTimeout(450);
+    check("The eye button shows a hidden line on the page and hides it again", eyeOn && !(await page.$('#m-paper li[data-id="acme3"]')));
+    await page.fill('#cv-form textarea[data-cv="sections.0.entries.0.bullets.0.text"]', "Cut weekend wait times by moving one cook to prep during the lunch rush, an idea the GM rolled out to two other stores");
+    await page.waitForTimeout(450);
+    const spill = await page.$eval("#m-paper", (p) => JSON.parse(p.dataset.fit).spills.map((x) => x.id));
+    check("Preview marks a line that spills a word, as you type", spill.includes("acme1") && !!(await page.$('#m-paper li.orphan[data-id="acme1"]')) && /spill/.test(await page.textContent("#m-fit")), JSON.stringify(spill));
+    check("Preview buttons for .docx and .pdf show", (await page.isVisible("#m-dl")) && (await page.isVisible("#m-pdf")));
     await page.fill('#cv-form textarea[data-cv="sections.0.entries.0.bullets.0.text"]', "Ran daily dispatch for 40 drivers across 3 routes, every weekday");
     await page.click('#cv-form button[data-addbul="0.0"]'); await page.waitForTimeout(100);
     await page.keyboard.type("Trained 2 new dispatchers");

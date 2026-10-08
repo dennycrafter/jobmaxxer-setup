@@ -164,16 +164,19 @@ Shape as in SETUP.md step 2 and `setup/example-master-cv.json`. Every entry and 
 
 ## 5. Check the page
 
-If `setup/check-cv.sh` isn't in the repo yet, skip the picture: follow the character limits in step 4 strictly and show the CV as text in the chat.
+The tracker measures the real page the same way it measures tailored CVs. Use it, don't guess.
 
-The tracker measures the real page the same way it measures tailored CVs. Use it, don't guess:
-
-1. Save the master (SETUP.md step 2), then have the person open the profile menu, **Master CV and voice**. The page preview at the top shows a chip: "Page filled", "One page · ~N lines free" or "Runs ~N lines onto page 2", plus "N lines spill a word". Lines that spill are marked red on the left.
-2. If you're working from the repo in your own workspace, run the check yourself before saving: `node setup/check-cv.js <master-cv.json>`. It prints the same measurements, each bullet's line count, and saves `setup/cv-preview.png` you can show the person.
-3. Fix until it says **Page filled** with **no spills**:
-   - Spill: shorten that line to 110 characters or less, or lengthen it to 165 or more with a true detail. Don't pad with filler.
-   - Lines free: move the most relevant optional line(s) into the core.
-   - Onto page 2: move the least relevant core line(s) to optional, or trim long bullets.
+1. **Before saving**, check it yourself from the repo: write the master CV to a JSON file and run `bash setup/check-cv.sh <file.json> [picture.png]`. It loads the real page with a fake empty database (nothing real is touched) and prints:
+   - `result`: GOOD only when it's one page, filled to the bottom, with no spills
+   - `fit`: lines left at the bottom, lines running onto page 2, and every line that spills a word or two (with how many characters to cut)
+   - `core`: each printed line with its length and line count
+   - `optional`: the hidden lines with their length, ready to bring in
+   - a picture of the page (default `setup/cv-preview.png`), worth showing the person
+2. Fix and re-run until it says GOOD. Only with true facts:
+   - Spill: shorten that line to 110 characters or less, or add a true detail from the fact bank so it reaches 165 or more. Never pad with filler.
+   - Lines left: move the most relevant optional line(s) into the core. If the bank runs out, go back to the person with a few more questions (step 3c and 3d): a thin CV usually means you haven't asked enough yet.
+   - Onto page 2: make the least relevant core line(s) optional, or trim long ones.
+3. After saving, the person sees the same check at the top of the Master CV page ("How it prints"): a chip saying "Page filled", "One page · ~N lines free" or "Runs ~N lines onto page 2", plus "N lines spill a word", with spilling lines marked red. They can show or hide any line with the eye next to it, and download the master as .docx or .pdf.
 
 ## 6. Check it with the person
 
@@ -189,7 +192,7 @@ Before calling it done, check:
 - [ ] The optional bank holds the rest of the true, useful facts.
 - [ ] Spelling is US English (unless they apply elsewhere).
 
-Then tell them how to download it (Master CV page, .docx or .pdf) and how to add more later.
+Then tell them how to download it (Master CV page, "How it prints" card, .docx or .pdf) and how to add more later.
 
 ## Adding more later
 
@@ -197,7 +200,7 @@ When the person remembers something new, in any chat:
 1. Read `profile/facts` and `profile/cv` from their tracker (ArtifactData).
 2. Add it to the fact bank (ask a follow-up or two first: numbers, dates, what came of it).
 3. Write it as a bullet (optional, unless it's stronger than a current core line, then swap) and save `profile/cv` with `update` on the `cv` field only, so their tailoring rules stay as they are.
-4. Re-check the page.
+4. Re-check the page (`bash setup/check-cv.sh`, or the "How it prints" card).
 
 ## Outside the US
 

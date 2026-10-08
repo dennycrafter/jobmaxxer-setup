@@ -3,7 +3,7 @@
 This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a Claude artifact. Each person publishes their own copy from their own Claude account, with their own empty database.
 
 - First-time setup: follow `SETUP.md`.
-- Anything about the person's master CV (building it, adding to it, fixing it): follow `setup/MASTER-CV-GUIDE.md`. Assume they don't know how to write a good CV; coach them.
+- Anything about the person's master CV (building it, adding to it, fixing it): follow `setup/MASTER-CV-GUIDE.md`. Assume they don't know how to write a good CV; coach them. Check any master CV with `bash setup/check-cv.sh <file.json>` before saving it.
 - The person may not be technical. Plain words, short steps, no em dashes.
 
 ## Keep it cheap (the person pays for every token)
@@ -15,9 +15,9 @@ This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a C
 - Small fix: no branch, no screenshots, run the check once at the end. Not after every edit.
 
 ## Map: where things live in index.html
-- Lines ~1 to 519: styles. Each section starts with a `/* ... */` comment: top bar, scoreboard, streak, bell, paste mode, goal celebration, dropdowns, job list, notes, Tailor drawer, CV zoom, CV page, preferences, add link window, settings, master CV editor.
+- Lines ~1 to 519: styles. Each section starts with a `/* ... */` comment: top bar, scoreboard, streak, bell, paste mode, goal celebration, dropdowns, job list, notes, Tailor drawer, CV zoom, CV page, preferences, add link window, settings, master CV editor (with the "How it prints" preview).
 - Lines ~520 to 760: layout (top bar, list, drawer, windows, settings). Line ~523 is the logo line.
-- Lines ~761 to the end: script. Sections start with `// ---------- name ----------`: CV .docx builder, CV .pdf builder, search settings, top bar and profile menu, master CV and voice editor, custom dropdowns, game layer, attention bell and paste mode, list, tailoring core, drawer, links you add yourself, page fit, preferences, events, boot.
+- Lines ~761 to the end: script. Sections start with `// ---------- name ----------`: CV .docx builder, CV .pdf builder, search settings, top bar and profile menu, master CV and voice editor, custom dropdowns, game layer, attention bell and paste mode, list, tailoring core, drawer, links you add yourself, page fit, master CV preview, preferences, events, boot.
 - Jump to a section: `grep -n -- '---------- ' index.html | cut -c1-120` or `grep -n '^/\*' index.html | cut -c1-120`. Line numbers shift, so always grep first.
 
 ## Where the data lives
