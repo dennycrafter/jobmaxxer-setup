@@ -164,6 +164,8 @@ Shape as in SETUP.md step 2 and `setup/example-master-cv.json`. Every entry and 
 
 ## 5. Check the page
 
+If `setup/check-cv.sh` isn't in the repo yet, skip the picture: follow the character limits in step 4 strictly and show the CV as text in the chat.
+
 The tracker measures the real page the same way it measures tailored CVs. Use it, don't guess:
 
 1. Save the master (SETUP.md step 2), then have the person open the profile menu, **Master CV and voice**. The page preview at the top shows a chip: "Page filled", "One page · ~N lines free" or "Runs ~N lines onto page 2", plus "N lines spill a word". Lines that spill are marked red on the left.
