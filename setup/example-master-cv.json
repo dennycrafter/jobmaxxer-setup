@@ -1,0 +1,104 @@
+{
+  "name": "ALEX SAMPLE",
+  "contact": "Austin, TX  |  [alex@example.com](mailto:alex@example.com)  |  [github.com/example](https://github.com/example)",
+  "summary": {
+    "lead": "Test summary.",
+    "body": "Graduate with startup operations and customer-facing experience, used here only to test the page."
+  },
+  "sections": [
+    {
+      "id": "experience",
+      "title": "EXPERIENCE",
+      "entries": [
+        {
+          "id": "acme",
+          "org": "Acme Co.",
+          "orgDesc": "logistics startup",
+          "place": "Austin, TX",
+          "role": "Operations Associate",
+          "dates": "Jan 2025 – Present",
+          "bullets": [
+            {
+              "id": "acme1",
+              "text": "Ran daily dispatch for 40 drivers across 3 routes"
+            },
+            {
+              "id": "acme2",
+              "text": "Built a weekly report used by the founders"
+            },
+            {
+              "id": "acme3",
+              "text": "Optional bank line for testing",
+              "optional": true
+            }
+          ]
+        },
+        {
+          "id": "shop",
+          "org": "Corner Shop",
+          "place": "Dublin",
+          "role": "Sales Assistant",
+          "dates": "2022 – 2024",
+          "bullets": [
+            {
+              "id": "shop1",
+              "text": "Served 100+ customers a day on the shop floor"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "projects",
+      "title": "PROJECTS",
+      "entries": [
+        {
+          "id": "sitecheck",
+          "org": "Test Project",
+          "place": "Austin, TX",
+          "role": "Builder",
+          "dates": "Sep 2026",
+          "bullets": [
+            {
+              "id": "sc1",
+              "text": "Shipped [a demo app](https://example.com) in 48 hours"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "title": "EDUCATION",
+      "entries": [
+        {
+          "id": "uni",
+          "org": "Sample University",
+          "orgDesc": "Bachelor of Commerce",
+          "place": "2021 – 2025",
+          "bullets": [
+            {
+              "id": "uni1",
+              "text": "GPA 3.5"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skills",
+      "title": "SKILLS",
+      "entries": [
+        {
+          "id": "sk",
+          "bullets": [
+            {
+              "id": "sk1",
+              "text": "Languages: English, Spanish"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

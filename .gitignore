@@ -1,0 +1,5 @@
+tests/screenshots/
+.test-page.html
+node_modules/
+data/
+.DS_Store
