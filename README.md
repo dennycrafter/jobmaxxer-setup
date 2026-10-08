@@ -6,10 +6,10 @@ It runs as a private page (an "artifact") on your own Claude account. Your jobs,
 
 ## How to set it up (about 15 minutes)
 
-1. Open Claude (claude.ai or the desktop app). Make sure GitHub is connected: Settings, then Connectors.
+1. Open Claude (claude.ai or the desktop app). You don't need a GitHub account: this repo is public and Claude downloads it itself. (GitHub is only needed for the optional nightly backup.)
 2. Start a new chat and send this:
 
-   > Set up jobmaxxer for me from the GitHub repo dennycrafter/jobmaxxer-setup. Follow SETUP.md in the repo.
+   > Set up jobmaxxer for me from the public GitHub repo https://github.com/dennycrafter/jobmaxxer-setup (clone it, no account needed). Follow SETUP.md in the repo.
 
 3. Claude publishes the tracker, then asks for a few things:
    - your CV (attach the file or paste the text). It doesn't need to be good, or even exist: Claude asks you questions about what you've done and builds a proper one-page US-style CV with you
