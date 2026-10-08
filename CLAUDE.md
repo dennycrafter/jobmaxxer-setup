@@ -18,7 +18,7 @@ In the artifact's own database (ArtifactData on the artifact URL):
 - `profile/cv`: `{cv, rules}`, the master CV and tailoring rules (empty rules = built-in starter rules).
 - `profile/voice`: writing voice, samples, stories for application answers.
 - `profile/prefs`: `{items:[{id,text,added}]}`, standing preferences, added from the page.
-- `profile/search`: cities, work setups, role types, limits, skip list, `about`. The morning search task reads it every run.
+- `profile/search`: cities, work setups (`arrangements`), `jobTypes`, `level`, the person's own `roleTypes` ([{id,name,ex}]) and which are on (`roles`), limits, skip list, `about`. The morning search task reads it every run. With no `roleTypes` saved the page uses the starter list `ROLE_TYPES`.
 
 The page reads the person's name from the master CV. Nothing about any one person is hardcoded; keep it that way (a check fails if names creep in).
 

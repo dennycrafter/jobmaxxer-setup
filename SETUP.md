@@ -58,23 +58,30 @@ Ask them to open the tracker, go to the profile menu (top right), Master CV and 
 
 ## 3. Search settings
 
-Ask:
-- Which cities? (any number)
-- On-site, hybrid, remote: which are OK?
-- A few lines about their background and what kind of role they want.
-- Any companies to skip?
-- How many years of experience is too many? (default: skip roles asking for 3+)
+Work out what they actually want. Their jobs can be nothing like the starter list: a nurse, an engineer, a designer, a senior manager all work. Ask, in plain words:
+- What kinds of jobs do you want? (use their CV to suggest a few, let them correct you)
+- What level: entry level, mid level, senior, or any?
+- Full-time, part-time, contract, internship: which are OK?
+- Which cities? (any number) And on-site, hybrid, remote: which are OK?
+- A few lines about their background and what they're looking for.
+- Any companies to skip? How many years of experience is too many (or no limit)?
+
+Then turn their answer into their own role types: 3 to 10 groups, each with a short name and a few example job titles. Example for a nurse: `{"id":"icu","name":"ICU and critical care nursing","ex":"ICU nurse, critical care RN"}`. Only keep starter types (listed as `ROLE_TYPES` in `index.html`) if they really fit. Ids are short lowercase slugs, unique.
 
 Save with ArtifactData, doc `profile/search`, action `set`:
 
 ```
 {"cities": ["Austin"], "arrangements": ["On-site", "Hybrid"],
- "roles": ["sdr","sales","gtm","cs","ops","founder","ai","analyst","compliance","supply","people","growth","newgrad","language"],
- "maxYears": 3, "dailyTarget": 30, "maxNew": 40, "skipCompanies": [],
+ "jobTypes": ["Full-time"],                      // any of Full-time, Part-time, Contract, Internship
+ "level": "entry",                               // entry, mid, senior or any
+ "roleTypes": [{"id": "icu", "name": "ICU and critical care nursing", "ex": "ICU nurse, critical care RN"}],
+ "roles": ["icu"],                               // the role type ids that are switched on
+ "maxYears": 3,                                  // skip roles asking for this many years or more; 99 = no limit
+ "dailyTarget": 30, "maxNew": 40, "skipCompanies": [],
  "about": "their few lines", "refresh": "new roles daily 6:55am", "updated": "<ISO date>"}
 ```
 
-Role type ids are listed in `index.html` (`ROLE_TYPES`). Untick the ones that clearly don't fit them. If they want role types the list doesn't have, say so; adding them is a change to `index.html` (see CLAUDE.md).
+Show them the Search settings page (profile menu) so they can see it: they can tick, untick, remove and add role types there themselves at any time.
 
 Everything here can also be changed later on the Search settings page.
 
@@ -91,14 +98,14 @@ Prompt:
 ```
 You run the morning job search for the jobmaxxer tracker at ARTIFACT_URL. Use the ArtifactData tool on that URL.
 
-1. Read profile/search (cities, arrangements, roles, maxYears, maxNew, skipCompanies, about) and profile/cv (the master CV). Read the jobs collection so you never add a job that is already there (same posting URL, or same company and role).
-2. Search the web for full-time, entry level or associate roles posted in the last 7 days in each city, matching the role types and work setups. Good places: company careers pages on Greenhouse, Lever, Ashby and Workable, Built In, Wellfound, and LinkedIn job pages. Open each posting to read it. Skip: staffing agencies, contract or temp roles, senior titles, roles asking for maxYears or more years, companies in skipCompanies, roles that don't allow any of the allowed work setups.
+1. Read profile/search (cities, arrangements, jobTypes, level, roleTypes, roles, maxYears, maxNew, skipCompanies, about) and profile/cv (the master CV). Read the jobs collection so you never add a job that is already there (same posting URL, or same company and role).
+2. Search the web for roles posted in the last 7 days in each city that match: one of the switched-on role types (the roleTypes whose id is in roles; use their names and example titles as search terms), the level (entry = entry level or associate, mid, senior, any), one of the jobTypes, and one of the arrangements. Good places: company careers pages on Greenhouse, Lever, Ashby and Workable, Built In, Wellfound, and LinkedIn job pages. Open each posting to read it. Skip: staffing agencies, roles far off their level, job types or work setups they didn't pick, roles asking for maxYears or more years (unless maxYears is 99), companies in skipCompanies.
 3. Add at most maxNew new jobs. For each, ArtifactData set jobs/<id> where id is a short unique slug (company-role-yyyymmdd), with:
    company, role (exact title), url, source (site name), status "new", found (today, YYYY-MM-DD),
    city (which of their cities it is in), arrangement (e.g. "Hybrid, Austin"), salary (as shown, or ""),
    auth (any citizenship, visa, sponsorship or clearance wording, briefly, or "None stated"),
    jd (condensed posting, max 300 words, plain text with lines DOES:, REQUIRES:, NICE:, KEYWORDS:, PAY:, ARRANGEMENT:),
-   track and cv ("Sales", "Ops" or "AI", whichever is closest), fit ("A" strong, "B" decent, "C" stretch, judged against "about" and the master CV),
+   track and cv (the name of the closest switched-on role type, spelled exactly as in roleTypes), fit ("A" strong, "B" decent, "C" stretch, judged against "about" and the master CV),
    why (one plain sentence on why it fits, no em dashes), flags (short warnings separated by "; ", or ""), pending false.
    If a job's city is not one of theirs, add "Relocation needed" to flags.
 4. Best fits first. Never change or delete existing jobs.

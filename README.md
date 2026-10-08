@@ -13,8 +13,9 @@ It runs as a private page (an "artifact") on your own Claude account. Your jobs,
 
 3. Claude publishes the tracker, then asks for a few things:
    - your CV (attach the file or paste the text)
-   - the cities you want jobs in
-   - on-site, hybrid or remote
+   - what kinds of jobs you want and at what level (anything: it doesn't have to be the same jobs as anyone else)
+   - the cities you want jobs in, and on-site, hybrid or remote
+   - full-time, part-time, contract or internship
    - a couple of lines about what you're looking for
 4. Claude sets up the daily job search and the link filler as scheduled tasks.
 5. Open the tracker, check your master CV (profile menu, top right), and you're ready.
@@ -24,7 +25,7 @@ It runs as a private page (an "artifact") on your own Claude account. Your jobs,
 - **Queue**: new roles from the morning search. Open one to tailor your CV, download it as .docx or .pdf, and draft answers to application questions.
 - **Applied / Interviews / Closed**: move jobs along as you go.
 - **My links**: paste a job link or a whole job description. The details fill in by themselves.
-- **Profile menu**: your master CV, your preferences (rules for how your CV is written), and search settings.
+- **Profile menu**: your master CV, your preferences (rules for how your CV is written), and search settings, where you can add, remove or pause the kinds of jobs you want any time.
 
 Tailoring only ever uses facts from your master CV. If something is missing, add it to the master CV first.
 

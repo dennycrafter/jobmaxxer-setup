@@ -72,16 +72,16 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     // Custom dropdowns instead of plain selects
     check("No plain dropdowns are visible (all replaced)", (await page.$$eval("select", (s) => s.filter((x) => x.offsetParent !== null).length)) === 0);
     await page.click("#dd-f-track .ddbtn"); await page.waitForTimeout(100);
-    check("Track dropdown opens a menu with 4 options and a tick on the chosen one",
-      (await page.isVisible("#dd-f-track .ddmenu")) && (await page.$$("#dd-f-track .ddopt")).length === 4 && (await page.textContent('#dd-f-track .ddopt[aria-selected="true"]')).trim() === "All tracks");
+    check("Role type dropdown lists the role types the jobs have, with a tick on the chosen one",
+      (await page.isVisible("#dd-f-track .ddmenu")) && (await page.$$("#dd-f-track .ddopt")).length === 3 && (await page.textContent('#dd-f-track .ddopt[aria-selected="true"]')).trim() === "All role types");
     await page.screenshot({ path: path.join(SHOTS, "9-dropdown-open.png") });
-    await page.click('#dd-f-track .ddopt[data-i="2"]'); await page.waitForTimeout(150);
+    await page.click('#dd-f-track .ddopt[data-i="1"]'); await page.waitForTimeout(150);
     check("Picking Ops filters the list and the button shows it (tinted red)", (await page.$$(".row")).length === 1 && (await page.textContent("#dd-f-track .ddbtn")).trim() === "Ops"
       && (await page.$eval("#dd-f-track .ddbtn", (b) => b.classList.contains("on"))) && !(await page.isVisible("#dd-f-track .ddmenu")));
     await page.focus("#dd-f-track .ddbtn"); await page.keyboard.press("ArrowDown"); await page.waitForTimeout(80);
     check("Arrow key opens the dropdown with the chosen option focused", (await page.isVisible("#dd-f-track .ddmenu")) && (await page.evaluate(() => document.activeElement.textContent.trim())) === "Ops");
     await page.keyboard.press("Home"); await page.keyboard.press("Enter"); await page.waitForTimeout(150);
-    check("Home + Enter picks All tracks again by keyboard", (await page.$$(".row")).length === 2 && !(await page.$eval("#dd-f-track .ddbtn", (b) => b.classList.contains("on"))));
+    check("Home + Enter picks All role types again by keyboard", (await page.$$(".row")).length === 2 && !(await page.$eval("#dd-f-track .ddbtn", (b) => b.classList.contains("on"))));
     await page.click("#dd-f-fit .ddbtn"); await page.keyboard.press("Escape"); await page.waitForTimeout(80);
     check("Escape closes the dropdown and returns focus to its button", !(await page.isVisible("#dd-f-fit .ddmenu")) && (await page.evaluate(() => document.activeElement.closest("#dd-f-fit") !== null)));
     await page.click("#dd-f-fit .ddbtn"); await page.click("#viewtitle"); await page.waitForTimeout(80);
@@ -597,8 +597,39 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     const fsw = (await fresh.evaluate(() => window.__writes)).find((x) => x.path === "profile/search");
     check("Fresh copy: About you saves with the search settings", fsw && fsw.set.about === "Recent marketing graduate who wants community roles.", JSON.stringify(fsw));
     await fresh.screenshot({ path: path.join(SHOTS, "fresh-settings.png"), fullPage: true });
+
+    // Role types, level and job type are the person's own
+    await fresh.click('#set-roles button[data-rmrole="0"]'); await fresh.waitForTimeout(80);
+    check("A role type can be removed", (await fresh.$$("#set-roles .rolerow")).length === 13 && !(await fresh.$("#set-role-sdr")));
+    await fresh.uncheck("#set-role-gtm");
+    await fresh.fill("#set-role-name", "Nursing"); await fresh.fill("#set-role-ex", "Registered nurse, ICU nurse"); await fresh.press("#set-role-ex", "Enter"); await fresh.waitForTimeout(80);
+    check("A new role type can be added and starts ticked", (await fresh.isChecked("#set-role-nursing")) && /Registered nurse/.test(await fresh.textContent("#set-roles")) && !(await fresh.isChecked("#set-role-gtm")));
+    await pick(fresh, "set-level", "senior"); await pick(fresh, "set-years", "99");
+    await fresh.check("#set-jt-part-time"); await fresh.uncheck("#set-jt-full-time");
+    await fresh.screenshot({ path: path.join(SHOTS, "fresh-settings-custom.png"), fullPage: true });
+    await fresh.click("#set-save"); await fresh.waitForTimeout(300);
+    const fs2 = (await fresh.evaluate(() => window.__writes)).filter((x) => x.path === "profile/search").pop();
+    check("Saving keeps custom role types, level, job type and no year limit",
+      fs2 && fs2.set.roleTypes.some((r) => r.id === "nursing" && r.ex === "Registered nurse, ICU nurse") && !fs2.set.roleTypes.some((r) => r.id === "sdr")
+      && fs2.set.roles.includes("nursing") && !fs2.set.roles.includes("gtm") && fs2.set.level === "senior" && fs2.set.jobTypes.join() === "Part-time" && fs2.set.maxYears === 99, JSON.stringify(fs2 && fs2.set));
+    check("Header line shows the chosen job type", /part-time/.test(await fresh.textContent("#scope")) && !/full-time/.test(await fresh.textContent("#scope")), await fresh.textContent("#scope"));
     check("Fresh copy: no page errors", frErr.length === 0, frErr.join(" | "));
     await fresh.close();
+    const pr = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+    await pr.addInitScript(fakeClaude, { jobs: [], profile_search: { cities: ["Austin"], arrangements: ["On-site"], jobTypes: ["Part-time"], level: "senior", maxYears: 99,
+      roleTypes: [{ id: "nursing", name: "Nursing", ex: "Registered nurse" }, { id: "teaching", name: "Teaching", ex: "" }], roles: ["nursing"] } });
+    await pr.addInitScript(() => {
+      window.__prompts = []; const base = window.claude.use;
+      window.claude.use = async (n) => n === "sample" ? { json: async (p) => { window.__prompts.push(p); return { company: "Made Up Clinic", role: "Senior ICU Nurse", city: "Austin", track: "nursing", cv: "nursing", fit: "A", jd: "DOES: care", why: "Fits.", flags: "", arrangement: "On-site", salary: "", auth: "None stated" }; } } : base(n);
+    });
+    await pr.goto("file://" + testFile); await pr.waitForTimeout(800);
+    await pr.click('.tab[data-tab="mine"]'); await pr.waitForTimeout(150); await pr.click("#add-open"); await pr.evaluate(() => { document.getElementById("add-jdwrap").open = true; });
+    await pr.fill("#add-jd", "Senior ICU Nurse at Made Up Clinic\nAustin, TX, on-site, part-time\nCare for patients in the intensive care unit. 5+ years of ICU experience."); await pr.click("#add-go"); await pr.waitForTimeout(500);
+    const prompt = (await pr.evaluate(() => window.__prompts))[0] || "";
+    check("Job grading uses the person's own role types, level and job type", /Nursing \(Registered nurse\)/.test(prompt) && /senior/.test(prompt) && /part-time/.test(prompt) && !/Teaching/.test(prompt) && !/Sales or Ops/.test(prompt) && !/years\b.*\+ years/.test(prompt) && !/99\+/.test(prompt), prompt.slice(0, 600));
+    const tw = await pr.evaluate(() => window.__writes.filter((w) => w.patch && w.patch.track).map((w) => w.patch.track));
+    check("A job's role type is matched to the person's own name for it", tw[0] === "Nursing", JSON.stringify(tw));
+    await pr.close();
   } finally {
     await browser.close();
     fs.rmSync(testFile, { force: true });

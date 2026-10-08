@@ -465,6 +465,15 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
 .addrow { display: flex; gap: 8px; flex-wrap: wrap; }
 .addrow input { flex: 1 1 160px; min-width: 0; }
 .checks { display: grid; gap: 8px; }
+.setgroups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.sublabel { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.rolerow { display: flex; align-items: flex-start; gap: 6px; }
+.rolerow .check { flex: 1; min-width: 0; }
+.rolerow .x { border: 0; background: transparent; color: var(--muted); font: 600 15px/1 var(--body); width: 24px; height: 24px; border-radius: 6px; cursor: pointer; flex: none; opacity: .55; }
+.rolerow:hover .x, .rolerow .x:focus-visible { opacity: 1; }
+.rolerow .x:hover { background: var(--surface-2); color: var(--fg); }
+.roleadd { margin-top: 14px; }
+.roleadd #set-role-ex { flex: 2 1 240px; }
 .checks.cols { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
 @media (max-width: 640px) { .checks.cols { grid-template-columns: 1fr; } }
 .check { display: flex; gap: 9px; align-items: flex-start; font-size: 13.5px; cursor: pointer; }
@@ -474,6 +483,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
 .limit { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 13.5px; }
 .limit input[type=number] { width: 80px; font: 500 13px var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; font-variant-numeric: tabular-nums; }
 .limit select { background: var(--bg); }
+.limit .dd { flex: none; }
 #set-skip, #set-about { width: 100%; min-height: 84px; resize: vertical; font: 400 13px var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px; }
 .settings input[type=text] { background: var(--bg); }
 .savebar { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(18, 18, 21, .92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; }
@@ -559,7 +569,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
     <div class="filters" id="filters">
       <select id="f-sort" aria-label="Sort" hidden><option value="due">Follow-up due first</option><option value="new">Newest applied first</option><option value="old">Oldest applied first</option></select>
       <select id="f-city" aria-label="City" hidden><option value="">All cities</option></select>
-      <select id="f-track" aria-label="Track"><option value="">All tracks</option><option>Sales</option><option>Ops</option><option>AI</option></select>
+      <select id="f-track" aria-label="Role type"><option value="">All role types</option></select>
       <select id="f-fit" aria-label="Fit"><option value="">Any fit</option><option value="A">Fit A</option><option value="B">Fit B</option><option value="C">Fit C</option></select>
       <input id="f-q" type="search" placeholder="Search company or role" aria-label="Search">
     </div>
@@ -574,19 +584,24 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
       <div class="addrow"><input type="text" id="set-city-new" placeholder="Add a city, e.g. Chicago" aria-label="City to add"><button class="btn" id="set-city-add">Add city</button></div>
     </div>
     <div class="card">
-      <h3>Work setup</h3>
-      <p class="hint">Full-time only. Roles that don't allow any of these are skipped.</p>
-      <div class="checks" id="set-arr"></div>
+      <h3>Job type and setup</h3>
+      <p class="hint">Roles that don't match are skipped.</p>
+      <div class="setgroups">
+        <div><div class="sublabel">Job type</div><div class="checks" id="set-jt"></div></div>
+        <div><div class="sublabel">Work setup</div><div class="checks" id="set-arr"></div></div>
+      </div>
     </div>
     <div class="card wide">
       <h3>Role types</h3>
-      <p class="hint">Untick a type and the search stops adding it. Entry level and associate only.</p>
+      <p class="hint">The kinds of jobs the search looks for. Untick one to pause it, remove the ones that don't fit you, and add your own.</p>
       <div class="checks cols" id="set-roles"></div>
+      <div class="addrow roleadd"><input type="text" id="set-role-name" placeholder="Add a role type, e.g. Marketing" aria-label="Role type to add"><input type="text" id="set-role-ex" placeholder="Example titles (optional), e.g. Marketing coordinator, content associate" aria-label="Example job titles"><button class="btn" id="set-role-add">Add type</button></div>
     </div>
     <div class="card">
       <h3>Limits</h3>
       <div class="limits">
-        <label class="limit" for="set-years">Skip roles asking for this many years or more<select id="set-years"><option value="2">2+ years</option><option value="3">3+ years</option><option value="4">4+ years</option><option value="5">5+ years</option></select></label>
+        <label class="limit" for="set-level">Experience level<select id="set-level"><option value="entry">Entry level and associate</option><option value="mid">Mid level</option><option value="senior">Senior</option><option value="any">Any level</option></select></label>
+        <label class="limit" for="set-years">Skip roles asking for this many years or more<select id="set-years"><option value="2">2+ years</option><option value="3">3+ years</option><option value="4">4+ years</option><option value="5">5+ years</option><option value="8">8+ years</option><option value="99">No limit</option></select></label>
         <label class="limit" for="set-target">Daily application target<input type="number" id="set-target" min="1" max="100" step="1"></label>
         <label class="limit" for="set-max">New roles per morning, at most<input type="number" id="set-max" min="5" max="120" step="5"></label>
       </div>
@@ -944,14 +959,24 @@ function buildCvPdf(JsPDF, cv, fonts) {
     ["language", "Language roles", "Roles asking for a second language"],
   ];
   const ARRANGEMENTS = ["On-site", "Hybrid", "Remote"];
-  const DEFAULTS = { cities: ["Austin"], arrangements: ["On-site", "Hybrid"], roles: ROLE_TYPES.map((r) => r[0]), maxYears: 3, dailyTarget: 30, maxNew: 40, skipCompanies: [], refresh: "new roles daily 6:55am" };
-  let search = null, setDirty = false, draftCities = null;
+  const JOB_TYPES = ["Full-time", "Part-time", "Contract", "Internship"];
+  const LEVELS = { entry: "entry level or associate", mid: "mid level", senior: "senior", any: "any level" };
+  // The person's own role types (profile/search.roleTypes) replace the starter list once saved.
+  const roleTypes = () => {
+    const r = search && Array.isArray(search.roleTypes) ? search.roleTypes.map((x) => (Array.isArray(x) ? x : [x && x.id, x && x.name, x && x.ex])).filter((x) => x[0] && x[1]).map((x) => [String(x[0]), String(x[1]), String(x[2] || "")]) : [];
+    return r.length ? r : ROLE_TYPES;
+  };
+  const DEFAULTS = { cities: ["Austin"], arrangements: ["On-site", "Hybrid"], jobTypes: ["Full-time"], level: "entry", roles: null, maxYears: 3, dailyTarget: 30, maxNew: 40, skipCompanies: [], refresh: "new roles daily 6:55am" };
+  let search = null, setDirty = false, draftCities = null, draftRoles = null;
   const listOr = (v, d) => (Array.isArray(v) && v.length ? v.map((x) => String(x).trim()).filter(Boolean) : d);
   const numOr = (v, d, lo, hi) => { const n = Math.round(Number(v)); return n >= lo && n <= hi ? n : d; };
   function cfg() {
     const s = search || {};
-    return { cities: listOr(s.cities, DEFAULTS.cities), arrangements: listOr(s.arrangements, DEFAULTS.arrangements), roles: listOr(s.roles, DEFAULTS.roles),
-      maxYears: numOr(s.maxYears, DEFAULTS.maxYears, 1, 10), dailyTarget: numOr(s.dailyTarget, DEFAULTS.dailyTarget, 1, 100), maxNew: numOr(s.maxNew, DEFAULTS.maxNew, 1, 200), about: String(s.about || "").trim(),
+    const types = roleTypes(), ids = types.map((r) => r[0]);
+    const roles = listOr(s.roles, ids).filter((x) => ids.includes(x));
+    return { cities: listOr(s.cities, DEFAULTS.cities), arrangements: listOr(s.arrangements, DEFAULTS.arrangements), jobTypes: listOr(s.jobTypes, DEFAULTS.jobTypes),
+      level: LEVELS[s.level] ? s.level : DEFAULTS.level, roleTypes: types, roles: roles.length ? roles : ids,
+      maxYears: numOr(s.maxYears, DEFAULTS.maxYears, 1, 99), dailyTarget: numOr(s.dailyTarget, DEFAULTS.dailyTarget, 1, 100), maxNew: numOr(s.maxNew, DEFAULTS.maxNew, 1, 200), about: String(s.about || "").trim(),
       skipCompanies: Array.isArray(s.skipCompanies) ? s.skipCompanies : DEFAULTS.skipCompanies, refresh: s.refresh || DEFAULTS.refresh };
   }
   const cityOf = (j) => String(j.city || cfg().cities[0] || "");
@@ -971,10 +996,19 @@ function buildCvPdf(JsPDF, cv, fonts) {
   function paintScope() {
     const c = cfg();
     const arr = c.arrangements.map((a) => a.toLowerCase()).join(" or ");
-    $("scope").textContent = [c.cities.join(" + "), "full-time", arr, c.refresh].filter(Boolean).join(" · ");
+    $("scope").textContent = [c.cities.join(" + "), c.jobTypes.map((a) => a.toLowerCase()).join(" or "), arr, c.refresh].filter(Boolean).join(" · ");
     $("s-target").textContent = c.dailyTarget;
   }
+  function paintTrackFilter() {
+    const sel = $("f-track"), cur = sel.value;
+    const all = [...new Set(jobs.map((j) => String(j.track || "").trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    sel.hidden = all.length < 2;
+    sel.innerHTML = `<option value="">All role types</option>` + all.map((x) => `<option${x === cur ? " selected" : ""}>${esc(x)}</option>`).join("");
+    if (cur && !all.includes(cur)) sel.value = "";
+    ddSync(sel);
+  }
   function paintCityFilter() {
+    paintTrackFilter();
     const c = cfg(), sel = $("f-city"), cur = sel.value;
     const all = [...new Set([...c.cities, ...jobs.map(cityOf)])];
     sel.hidden = all.length < 2;
@@ -987,17 +1021,38 @@ function buildCvPdf(JsPDF, cv, fonts) {
       ? draftCities.map((x, i) => `<span class="citychip">${esc(x)}<button type="button" data-rmcity="${i}" aria-label="Remove ${esc(x)}">×</button></span>`).join("")
       : `<span class="hint">No cities yet. Add at least one.</span>`;
   }
+  // Role types: a draft list, so adding or removing one doesn't lose which boxes are ticked.
+  function readRoleChecks() { if (!draftRoles) return; draftRoles.forEach((r) => { const el = $("set-role-" + r.id); if (el) r.on = el.checked; }); }
+  function paintRoles() {
+    $("set-roles").innerHTML = draftRoles.length
+      ? draftRoles.map((r, i) => `<div class="rolerow"><label class="check"><input type="checkbox" name="set-role" id="set-role-${esc(r.id)}" value="${esc(r.id)}"${r.on ? " checked" : ""}><span>${esc(r.name)}${r.ex ? `<small>${esc(r.ex)}</small>` : ""}</span></label><button type="button" class="x" data-rmrole="${i}" aria-label="Remove ${esc(r.name)}">×</button></div>`).join("")
+      : `<span class="hint">No role types yet. Add at least one below.</span>`;
+  }
+  function addRoleType() {
+    const name = $("set-role-name").value.trim().replace(/\s+/g, " "), ex = $("set-role-ex").value.trim().replace(/\s+/g, " ");
+    if (!name) { $("set-role-name").focus(); return; }
+    readRoleChecks();
+    if (!draftRoles.some((r) => r.name.toLowerCase() === name.toLowerCase())) {
+      let id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 30) || "type";
+      while (draftRoles.some((r) => r.id === id)) id += "-2";
+      draftRoles.push({ id, name, ex, on: true });
+    }
+    $("set-role-name").value = ""; $("set-role-ex").value = ""; setDirty = true; paintRoles();
+    $("set-status").className = "status"; $("set-status").textContent = "Not saved yet.";
+  }
   function paintSettings(force) {
     if (setDirty && !force) return;
     const c = cfg();
     draftCities = [...c.cities]; paintCities();
     $("set-arr").innerHTML = ARRANGEMENTS.map((a) => `<label class="check"><input type="checkbox" name="set-arr" id="set-arr-${a.toLowerCase()}" value="${a}"${c.arrangements.includes(a) ? " checked" : ""}><span>${a}</span></label>`).join("");
-    $("set-roles").innerHTML = ROLE_TYPES.map(([id, name, ex]) => `<label class="check"><input type="checkbox" name="set-role" id="set-role-${id}" value="${id}"${c.roles.includes(id) ? " checked" : ""}><span>${esc(name)}${ex ? `<small>${esc(ex)}</small>` : ""}</span></label>`).join("");
-    $("set-years").value = String(Math.min(5, Math.max(2, c.maxYears)));
+    $("set-jt").innerHTML = JOB_TYPES.map((a) => `<label class="check"><input type="checkbox" name="set-jt" id="set-jt-${a.toLowerCase()}" value="${a}"${c.jobTypes.includes(a) ? " checked" : ""}><span>${a}</span></label>`).join("");
+    draftRoles = c.roleTypes.map(([id, name, ex]) => ({ id, name, ex, on: c.roles.includes(id) })); paintRoles();
+    $("set-level").value = c.level;
+    $("set-years").value = c.maxYears >= 99 ? "99" : c.maxYears >= 8 ? "8" : String(Math.min(5, Math.max(2, c.maxYears)));
     $("set-target").value = c.dailyTarget; $("set-max").value = c.maxNew;
     $("set-skip").value = c.skipCompanies.join("\n"); $("set-about").value = c.about;
     $("set-save").disabled = !writable;
-    ddSync($("set-years"));
+    ddSync($("set-years")); ddSync($("set-level"));
     setDirty = false;
   }
   function addCity() {
@@ -1011,11 +1066,15 @@ function buildCvPdf(JsPDF, cv, fonts) {
     if (!db || !writable) return;
     const st = $("set-status"); st.className = "status err";
     const arrangements = [...document.querySelectorAll('input[name="set-arr"]:checked')].map((x) => x.value);
-    const roles = [...document.querySelectorAll('input[name="set-role"]:checked')].map((x) => x.value);
+    readRoleChecks();
+    const roles = draftRoles.filter((r) => r.on).map((r) => r.id);
+    const jobTypes = [...document.querySelectorAll('input[name="set-jt"]:checked')].map((x) => x.value);
     if (!draftCities.length) { st.textContent = "Add at least one city."; return; }
     if (!arrangements.length) { st.textContent = "Tick at least one work setup."; return; }
+    if (!jobTypes.length) { st.textContent = "Tick at least one job type."; return; }
     if (!roles.length) { st.textContent = "Tick at least one role type."; return; }
-    const data = { cities: draftCities, arrangements, roles, maxYears: numOr($("set-years").value, 3, 2, 5),
+    const data = { cities: draftCities, arrangements, jobTypes, level: LEVELS[$("set-level").value] ? $("set-level").value : "entry",
+      roleTypes: draftRoles.map((r) => ({ id: r.id, name: r.name, ex: r.ex })), roles, maxYears: numOr($("set-years").value, 3, 2, 99),
       dailyTarget: numOr($("set-target").value, DEFAULTS.dailyTarget, 1, 100), maxNew: numOr($("set-max").value, DEFAULTS.maxNew, 5, 120),
       skipCompanies: $("set-skip").value.split("\n").map((x) => x.trim()).filter(Boolean), about: $("set-about").value.trim(), refresh: cfg().refresh, updated: new Date().toISOString() };
     $("set-save").disabled = true;
@@ -1834,26 +1893,31 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
   }
   function extractPrompt(url, text) {
     const c = cfg();
-    const roleNames = ROLE_TYPES.filter((r) => c.roles.includes(r[0])).map((r) => r[1].toLowerCase()).join(", ");
+    const picked = c.roleTypes.filter((r) => c.roles.includes(r[0]));
+    const roleNames = picked.map((r) => r[1] + (r[2] ? ` (${r[2]})` : "")).join("; ");
+    const names = picked.map((r) => r[1]);
+    const years = c.maxYears >= 99 ? "" : `, nothing asking for ${c.maxYears}+ years`;
     return `Turn this job posting into a record for ${who()}'s job tracker.
 
 About ${who()} (for fit only): ${about()}
-They want full-time, ${c.arrangements.map((a) => a.toLowerCase()).join(" or ")} roles in ${c.cities.join(", ")} that are entry level and degree-related (${roleNames}). Not contract, not staffing agencies, not mostly clerical, not senior, nothing asking for ${c.maxYears}+ years.
+They want ${c.jobTypes.map((a) => a.toLowerCase()).join(" or ")}, ${c.arrangements.map((a) => a.toLowerCase()).join(" or ")} roles in ${c.cities.join(", ")}, at ${LEVELS[c.level]}, in these role types: ${roleNames}. Not staffing agencies${years}.
 
 Posting URL: ${url || "none (pasted without a link)"}
 Posting text:
 ${text}
 
 Reply with ONLY one JSON object:
-{"company":"company name","role":"exact job title","city":"the one of his cities (${cfg().cities.join(", ")}) this job is in, or the job's own city if none","arrangement":"e.g. Hybrid, Austin","salary":"as shown, or empty","auth":"quote any citizenship, sponsorship, visa or export-control language briefly, or None stated","jd":"condensed posting, max 300 words, plain text with labelled lines DOES:, REQUIRES:, NICE:, KEYWORDS:, PAY:, ARRANGEMENT:","track":"Sales or Ops or AI","cv":"Sales or Ops or AI","fit":"A or B or C","why":"one plain sentence on why it fits him, no em dashes","flags":"short warnings separated by '; ' (remote-only, contract, senior title, ${cfg().maxYears}+ years required, citizenship or clearance required, not in one of his cities), or empty"}`;
+{"company":"company name","role":"exact job title","city":"the one of their cities (${cfg().cities.join(", ")}) this job is in, or the job's own city if none","arrangement":"e.g. Hybrid, Austin","salary":"as shown, or empty","auth":"quote any citizenship, sponsorship, visa or export-control language briefly, or None stated","jd":"condensed posting, max 300 words, plain text with labelled lines DOES:, REQUIRES:, NICE:, KEYWORDS:, PAY:, ARRANGEMENT:","track":"the closest one of: ${names.join(" | ")}","cv":"same as track","fit":"A or B or C","why":"one plain sentence on why it fits them, no em dashes","flags":"short warnings separated by '; ' (work setup or job type they didn't pick, level far off what they want${years ? ", " + c.maxYears + "+ years required" : ""}, citizenship or clearance required, not in one of their cities), or empty"}`;
   }
+  // Match the model's answer to one of the person's role type names (case-insensitive); keep its own words if nothing matches.
+  const pickType = (v) => { const c = cfg(), names = c.roleTypes.filter((r) => c.roles.includes(r[0])).map((r) => r[1]), t = String(v || "").trim(); return names.find((n) => n.toLowerCase() === t.toLowerCase()) || t || names[0] || ""; };
   async function extractInto(id, url, text) {
     try {
       const r = await sample.json(extractPrompt(url, text), { modelTier: "default", cache: false });
       if (!r || !r.company || !r.role) throw { code: "invalid_json" };
       const pick = (v, ok, d) => (ok.includes(v) ? v : d);
       await write(id, { company: clean(r.company), role: clean(r.role), city: clean(r.city) || cfg().cities[0], arrangement: clean(r.arrangement), salary: clean(r.salary), auth: clean(r.auth) || "None stated",
-        jd: cleanMulti(r.jd), track: pick(r.track, ["Sales", "Ops", "AI"], "Sales"), cv: pick(r.cv, ["Sales", "Ops", "AI"], "Sales"), fit: pick(r.fit, ["A", "B", "C"], "B"),
+        jd: cleanMulti(r.jd), track: pickType(r.track), cv: pickType(r.cv || r.track), fit: pick(r.fit, ["A", "B", "C"], "B"),
         why: clean(r.why), flags: clean(r.flags), pending: false, pendingNote: "" }, "Details filled in");
       return true;
     } catch (e) { toast(!url ? "Couldn't read the details. The description is saved on the job." : e && e.code === "not_granted" ? "Claude access was declined, so details will fill in within 2 hours." : "Couldn't read the description. The details will fill in within 2 hours."); return false; }
@@ -2425,6 +2489,8 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     }
     const rb = e.target.closest("button[data-rmbul]");
     if (rb) { const [si, ei, bi] = rb.dataset.rmbul.split(".").map(Number); cvDraft.sections[si].entries[ei].bullets.splice(bi, 1); cvChanged(); renderCvForm(); return; }
+    const rr = e.target.closest("button[data-rmrole]");
+    if (rr) { readRoleChecks(); draftRoles.splice(Number(rr.dataset.rmrole), 1); setDirty = true; paintRoles(); $("set-status").className = "status"; $("set-status").textContent = "Not saved yet."; return; }
     const rm = e.target.closest("button[data-rmcity]");
     if (rm) { draftCities.splice(Number(rm.dataset.rmcity), 1); setDirty = true; paintCities(); $("set-status").className = "status"; $("set-status").textContent = "Not saved yet."; return; }
     const btn = e.target.closest("button[data-act]"); if (!btn) return;
@@ -2478,6 +2544,8 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
   $("streak-btn").addEventListener("click", (e) => { e.stopPropagation(); const w = $("streakwrap"), on = !w.classList.contains("open"); w.classList.toggle("open", on); $("streak-btn").setAttribute("aria-expanded", String(on)); });
   document.addEventListener("click", (e) => { if (!e.target.closest("#streakwrap")) { $("streakwrap").classList.remove("open"); $("streak-btn").setAttribute("aria-expanded", "false"); } });
   $("set-city-add").addEventListener("click", addCity);
+  $("set-role-add").addEventListener("click", addRoleType);
+  ["set-role-name", "set-role-ex"].forEach((id) => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addRoleType(); } }));
   $("set-city-new").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCity(); } });
   $("set-save").addEventListener("click", saveSettings);
   $("t-close").addEventListener("click", closeDrawer);
@@ -2534,7 +2602,7 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
 
   // ---------- boot ----------
   ["f-sort", "f-city", "f-track", "f-fit"].forEach((id) => ddEnhance($(id), id !== "f-sort"));
-  ddEnhance($("set-years"));
+  ddEnhance($("set-years")); ddEnhance($("set-level"));
   (async () => {
     db = await claude.use("db");
     if (!db) { $("list").innerHTML = `<div class="empty"><strong>Pipeline data isn't available here</strong>Open this page in Claude to see and update your roles.</div>`; return; }
