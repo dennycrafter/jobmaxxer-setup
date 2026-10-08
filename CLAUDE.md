@@ -7,6 +7,10 @@ This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a C
 - The person may not be technical. Plain words, short steps, no em dashes.
 
 ## Keep it cheap (the person pays for every token)
+Every step re-reads a large block of setup, so the number of steps is the cost. Targets: a question in 1 to 3 steps, a small fix under 10, a feature under 30.
+- Batch: one shell command that greps, reads and edits several things beats many small calls.
+- No task-list widget, no progress messages, no subagents unless the person asks.
+- Run the tests once, at the end. Screenshots only for visual changes, one set.
 - `index.html` is about 270KB. Never Read it whole and never read the live page into the chat.
 - Find the spot with `grep -n "<word>" index.html | cut -c1-200`, then Read only those lines with offset/limit. Always pipe grep through `cut`: line ~523 holds the logos as one 64,000-character line.
 - Leave the logo line alone. The logos are embedded on purpose: separate image or script files do not load in the Claude mobile app. Keep everything in this one file.

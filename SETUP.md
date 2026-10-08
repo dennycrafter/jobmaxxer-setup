@@ -2,7 +2,7 @@
 
 You are setting up a fresh copy of the jobmaxxer job tracker on this person's own Claude account. Do these steps in order. The person may not be technical: talk in plain words, short steps, no em dashes, and do everything you can yourself rather than telling them how.
 
-Use a task list so they can see progress.
+Don't use a task list or progress messages: they cost steps. Say in one line where you are when you move to the next part.
 
 **The setup happens here, in this chat.** You ask the questions, they answer, you save everything. The tracker page is where results end up and where they can make small tweaks later, but never send them there to fill things in or check your work: show results in the chat instead (plain text, plus the CV picture from `setup/check-cv.sh`).
 
