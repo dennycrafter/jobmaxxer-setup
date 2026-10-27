@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>jobmaxxer</title>
+<meta name="description" content="jobmaxxer: your job search on autopilot. Coming soon.">
+<meta name="theme-color" content="#0b0b0d">
+<meta property="og:title" content="jobmaxxer">
+<meta property="og:description" content="Your job search on autopilot. Coming soon.">
+<link rel="icon" href="/car.webp" type="image/webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira:wdth,wght@100..125,700..900&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+  html, body { height: 100%; }
+  body { overflow-x: hidden; }
+  /* One centred stack: car, wordmark, COMING SOON. A faint red glow on the floor under the car. */
+  .stage { max-width: none; margin: 0; min-height: 100svh; display: grid; place-items: center; padding: 48px var(--gutter) 120px; position: relative; isolation: isolate; }
+  .stage::before { content: ""; position: absolute; left: 50%; top: 46%; width: min(1100px, 120vw); height: 60%; transform: translate(-50%, -50%); background: radial-gradient(closest-side, rgba(232, 35, 26, .14), rgba(232, 35, 26, 0)); z-index: -1; pointer-events: none; }
+  .hero { display: grid; justify-items: center; gap: clamp(10px, 2vw, 18px); text-align: center; width: 100%; padding: 0; }
+  .hero .car { width: min(46vw, 400px); height: auto; margin-bottom: clamp(-6px, -1vw, 0px); animation: drive .9s cubic-bezier(.2, .9, .25, 1) both; }
+  .hero h1 { margin: 0; line-height: 0; }
+  .hero .word { width: min(90vw, 940px); height: auto; animation: slam .55s cubic-bezier(.2, 1.35, .35, 1) .45s both; }
+  .soon { margin: clamp(8px, 2vw, 18px) 0 0; font: 800 clamp(22px, 5.2vw, 58px)/1 "Saira", var(--body); font-stretch: 125%; letter-spacing: .06em; text-transform: uppercase; transform: skewX(-12deg); color: var(--fg); animation: rise .5s ease-out .85s both; }
+  .soon span { color: var(--accent); }
+  @keyframes drive { 0% { transform: translateX(-60vw); opacity: 0; } 70% { transform: translateX(2vw); opacity: 1; } 100% { transform: none; } }
+  @keyframes slam { 0% { transform: scale(1.35); opacity: 0; } 100% { transform: none; opacity: 1; } }
+  @keyframes rise { from { transform: skewX(-12deg) translateY(14px); opacity: 0; } }
+
+  /* Admin access: a quiet button at the bottom, opens a small floating window */
+  .admin { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: inline-flex; align-items: center; gap: 7px; font: 600 12.5px var(--body); color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
+  .admin:hover { color: var(--fg); background: var(--surface-2); border-color: #3a3a42; }
+  .admin svg { width: 13px; height: 13px; }
+  .scrim { position: fixed; inset: 0; z-index: 20; background: rgba(0, 0, 0, .62); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); display: grid; place-items: center; padding: 16px; }
+  .win { width: min(380px, 100%); background: var(--surface-2); border: 1px solid #34343a; border-radius: var(--r); box-shadow: 0 6px 16px rgba(0, 0, 0, .3); padding: 18px 18px 16px; display: grid; gap: 14px; animation: pop .22s cubic-bezier(.2, 1.3, .4, 1); }
+  @keyframes pop { from { transform: scale(.96); opacity: 0; } }
+  .winhead { display: flex; justify-content: space-between; align-items: center; }
+  .winhead h2 { margin: 0; font: 600 16px var(--body); }
+  .x { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--muted); cursor: pointer; }
+  .x:hover { background: var(--line); color: var(--fg); }
+  .win input { width: 100%; font: 400 14px var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  .win input:focus { outline: none; border-color: #5a5a62; }
+  .win .actrow { justify-content: space-between; }
+  .win.shake { animation: shake .4s cubic-bezier(.36, .07, .19, .97); }
+  @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero .car, .hero .word, .soon, .win, .win.shake { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="hero">
+    <img class="car" src="/car.webp" alt="" width="307" height="112">
+    <h1><img class="word" src="/logo.webp" alt="jobmaxxer" width="1005" height="160"></h1>
+    <p class="soon">Coming <span>soon</span></p>
+  </div>
+</main>
+
+<button class="admin" type="button" id="admin-open" aria-haspopup="dialog">
+  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/></svg>
+  Admin access
+</button>
+
+<div class="scrim" id="admin-scrim" hidden>
+  <form class="win" id="admin-form" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+    <div class="winhead">
+      <h2 id="admin-title">Admin access</h2>
+      <button class="x" type="button" id="admin-x" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12"/></svg></button>
+    </div>
+    <input type="password" id="admin-pw" name="password" placeholder="Password" autocomplete="current-password" required aria-label="Password">
+    <div class="actrow">
+      <p class="msg" id="admin-out" role="status" aria-live="polite"></p>
+      <button class="btn primary" type="submit" id="admin-go">Enter</button>
+    </div>
+  </form>
+</div>
+
+<script>
+(() => {
+  const scrim = document.getElementById('admin-scrim');
+  const form = document.getElementById('admin-form');
+  const pw = document.getElementById('admin-pw');
+  const out = document.getElementById('admin-out');
+  const go = document.getElementById('admin-go');
+  const opener = document.getElementById('admin-open');
+  const open = () => { scrim.hidden = false; out.textContent = ''; pw.value = ''; setTimeout(() => pw.focus(), 30); };
+  const close = () => { scrim.hidden = true; opener.focus(); };
+  opener.addEventListener('click', open);
+  document.getElementById('admin-x').addEventListener('click', close);
+  scrim.addEventListener('mousedown', (e) => { if (e.target === scrim) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !scrim.hidden) close(); });
+  if (new URLSearchParams(location.search).has('login')) open();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!pw.value) { pw.focus(); return; }
+    go.disabled = true; out.className = 'msg'; out.textContent = '';
+    try {
+      const r = await fetch('/api/login', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password: pw.value }) });
+      if (r.ok) { location.href = '/admin'; return; }
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.error || 'That didn’t work.');
+    } catch (err) {
+      out.className = 'msg err'; out.textContent = err.message;
+      form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+      pw.select();
+    } finally { go.disabled = false; }
+  });
+})();
+</script>
+</body>
+</html>

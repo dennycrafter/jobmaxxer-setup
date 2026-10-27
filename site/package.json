@@ -1,0 +1,9 @@
+{
+  "name": "jobmaxxer-site",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "@vercel/functions": "^3.10.3"
+  }
+}

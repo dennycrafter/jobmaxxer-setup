@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Send feedback · jobmaxxer</title>
+<meta name="description" content="Tell us about bugs, ideas or anything else in jobmaxxer.">
+<meta name="theme-color" content="#0b0b0d">
+<link rel="icon" href="/car.webp" type="image/webp">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topin">
+    <a class="brand" href="/" aria-label="jobmaxxer home"><img class="mark" src="/car.webp" alt="" width="94" height="34"><img class="logo" src="/logo.webp" alt="jobmaxxer" width="126" height="20"></a>
+    <nav class="nav" aria-label="Site">
+      <a href="/feedback" aria-current="page">Feedback</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <p class="eyebrow">Beta</p>
+  <h1>Send feedback</h1>
+  <p class="lede">Found a bug, missing something, or love a feature? Tell us. Every message gets read.</p>
+
+  <form class="form" id="fb" novalidate>
+    <fieldset>
+      <legend>What's it about?</legend>
+      <div class="kinds">
+        <label><input type="radio" name="kind" value="bug" checked><span>Something's broken</span></label>
+        <label><input type="radio" name="kind" value="idea"><span>An idea</span></label>
+        <label><input type="radio" name="kind" value="other"><span>Something else</span></label>
+      </div>
+    </fieldset>
+
+    <label class="field">
+      <span>Your message</span>
+      <textarea name="message" id="fb-msg" maxlength="5000" required placeholder="What happened, or what would make jobmaxxer better? If something broke, say which screen you were on and what you clicked."></textarea>
+    </label>
+
+    <label class="field">
+      <span>Email <small>(optional, only if you want a reply)</small></span>
+      <input type="email" name="email" id="fb-email" maxlength="200" autocomplete="email" placeholder="you@example.com">
+    </label>
+
+    <label class="hp" aria-hidden="true">Leave this empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+
+    <div class="actrow">
+      <button class="btn primary" type="submit" id="fb-send">Send feedback</button>
+      <p class="msg" id="fb-msg-out" role="status" aria-live="polite"></p>
+    </div>
+    <p class="note">Please don't include your CV, passwords or other private details. See our <a href="/privacy">Privacy Policy</a>.</p>
+  </form>
+
+  <div class="done" id="fb-done" hidden>
+    <strong>Thanks, got it.</strong>
+    <p>If you left an email, you'll hear back.</p>
+    <button class="btn" type="button" id="fb-again">Send another</button>
+  </div>
+</main>
+<script>
+(() => {
+  const form = document.getElementById('fb');
+  const out = document.getElementById('fb-msg-out');
+  const send = document.getElementById('fb-send');
+  const done = document.getElementById('fb-done');
+  const say = (t, err) => { out.textContent = t; out.className = 'msg' + (err ? ' err' : ''); };
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const d = new FormData(form);
+    const message = String(d.get('message') || '').trim();
+    const email = String(d.get('email') || '').trim();
+    if (message.length < 3) { say('Write a few words first.', true); document.getElementById('fb-msg').focus(); return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { say('That email looks off. Fix it or leave it empty.', true); document.getElementById('fb-email').focus(); return; }
+    send.disabled = true; say('Sending...');
+    try {
+      const r = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ kind: d.get('kind'), message, email, website: d.get('website'), page: document.referrer || '' })
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || 'Something went wrong.');
+      form.reset(); say(''); form.hidden = true; done.hidden = false;
+    } catch (err) {
+      say(err.message + ' Try again in a minute.', true);
+    } finally { send.disabled = false; }
+  });
+  document.getElementById('fb-again').addEventListener('click', () => { done.hidden = true; form.hidden = false; document.getElementById('fb-msg').focus(); });
+})();
+</script>
+<footer>
+  <div class="footin">
+    <span>jobmaxxer is an independent project. It is not made by or affiliated with Anthropic.</span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/dennycrafter/jobmaxxer-setup">GitHub</a>
+      <a href="/feedback">Feedback</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

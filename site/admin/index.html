@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>jobmaxxer admin</title>
+<meta name="theme-color" content="#0b0b0d">
+<link rel="icon" href="/car.webp" type="image/webp">
+<link rel="stylesheet" href="/style.css">
+<style>
+  main { max-width: 900px; }
+  .head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 22px; }
+  .head h1 { margin: 0; }
+  .links { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; margin-bottom: 32px; }
+  .links a { background: var(--surface); padding: 14px 16px; text-decoration: none; display: grid; gap: 2px; }
+  .links a:hover { background: #16161a; }
+  .links strong { font-size: 14px; }
+  .links small { color: var(--muted); font-size: 12.5px; }
+  .sechead { display: flex; justify-content: space-between; align-items: center; margin: 0 0 10px; }
+  .sechead h2 { margin: 0; }
+  .count { color: var(--muted); font-size: 13px; }
+  .list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+  .item { padding: 14px 18px; border-top: 1px solid var(--line); display: grid; gap: 6px; }
+  .item:first-child { border-top: 0; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0; font-size: 12.5px; color: var(--muted); }
+  .meta > * + *::before { content: "\00b7"; display: inline-block; margin: 0 8px; color: #55555c; }
+  .kind { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .kind::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .kind.bug { color: var(--bad); } .kind.idea { color: var(--info); } .kind.other { color: var(--muted); }
+  .item p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--fg); }
+  .item a { color: var(--info); }
+  .empty { padding: 28px 18px; text-align: center; color: var(--muted); }
+  .empty strong { display: block; color: var(--fg); margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topin">
+    <a class="brand" href="/" aria-label="jobmaxxer home"><img class="mark" src="/car.webp" alt="" width="94" height="34"><img class="logo" src="/logo.webp" alt="jobmaxxer" width="126" height="20"></a>
+    <nav class="nav" aria-label="Admin">
+      <a href="/admin" aria-current="page">Admin</a>
+      <a href="/preview">Preview</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <div class="head">
+    <div>
+      <p class="eyebrow">Only you can see this</p>
+      <h1>Admin</h1>
+    </div>
+    <button class="btn" type="button" id="logout">Sign out</button>
+  </div>
+
+  <nav class="links" aria-label="Pages">
+    <a href="/preview"><strong>Landing page draft</strong><small>The real homepage, before it goes live</small></a>
+    <a href="/feedback"><strong>Feedback form</strong><small>What testers see</small></a>
+    <a href="/privacy"><strong>Privacy Policy</strong><small>Public page</small></a>
+    <a href="/terms"><strong>Terms of Use</strong><small>Public page</small></a>
+  </nav>
+
+  <div class="sechead">
+    <h2>Feedback</h2>
+    <span class="count" id="count"></span>
+  </div>
+  <div class="list" id="list"><div class="empty">Loading...</div></div>
+</main>
+<script>
+(() => {
+  const list = document.getElementById('list');
+  const count = document.getElementById('count');
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const when = (t) => new Date(t).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const label = { bug: 'Bug', idea: 'Idea', other: 'Other' };
+  fetch('/api/feedback', { cache: 'no-store' }).then(async (r) => {
+    if (r.status === 401) { location.href = '/?login=1'; return; }
+    const j = await r.json();
+    if (!j.setup) { list.innerHTML = '<div class="empty"><strong>Feedback storage isn’t connected yet.</strong>Connect a Neon database to this project in Vercel and messages show up here.</div>'; return; }
+    count.textContent = j.items.length === 1 ? '1 message' : j.items.length + ' messages';
+    if (!j.items.length) { list.innerHTML = '<div class="empty"><strong>No feedback yet.</strong>Messages from the feedback form land here.</div>'; return; }
+    list.innerHTML = j.items.map((f) => `<article class="item">
+      <div class="meta"><span class="kind ${esc(f.kind)}">${esc(label[f.kind] || 'Other')}</span><span>${esc(when(f.created_at))}</span>${f.email ? `<a href="mailto:${esc(f.email)}">${esc(f.email)}</a>` : '<span>No email</span>'}</div>
+      <p>${esc(f.message)}</p>
+    </article>`).join('');
+  }).catch(() => { list.innerHTML = '<div class="empty"><strong>Couldn’t load feedback.</strong>Refresh to try again.</div>'; });
+  document.getElementById('logout').addEventListener('click', async () => {
+    await fetch('/api/logout', { method: 'POST' }).catch(() => {});
+    location.href = '/';
+  });
+})();
+</script>
+</body>
+</html>
