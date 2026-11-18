@@ -95,5 +95,33 @@ ok("parse 'Expected May 2026'", parseRange("Expected May 2026").has);
 ok("parse 'Sep 2026'", parseRange("Sep 2026").start.m === 2026 * 12 + 8);
 ok("example master CV has no problems", reviewCv(example, TODAY).problems.length === 0, reviewCv(example, TODAY).problems);
 
+// 10. French CVs (lang "fr"): French dates, aujourd'hui, French order message
+const frcv = () => ({
+  name: "Sam TESTER",
+  contact: "Paris, France  |  06 12 34 56 78  |  [sam@example.com](mailto:sam@example.com)",
+  summary: { lead: "Profil opérations", body: "Gère la logistique et le service client dans deux petites entreprises." },
+  sections: [
+    { id: "experience", title: "EXPÉRIENCE PROFESSIONNELLE", entries: [
+      { id: "f1", org: "Nouvelle SA", place: "Paris, France", role: "Responsable", dates: "mars 2026 – aujourd'hui", bullets: [{ id: "f11", text: "Organise la planification hebdomadaire de 5 personnes" }] },
+      { id: "f2", org: "Ancienne SARL", place: "Lyon, France", role: "Assistant", dates: "juin 2023 – déc. 2024", bullets: [{ id: "f21", text: "Accueilli plus de 100 clients par jour" }] },
+    ] },
+    { id: "education", title: "FORMATION", entries: [{ id: "fu", org: "Université Test", orgDesc: "Licence", place: "sept. 2020 – juin 2023", bullets: [{ id: "fu1", text: "Mention bien" }] }] },
+    { id: "skills", title: "COMPÉTENCES", entries: [{ id: "fsk", bullets: [{ id: "fsk1", text: "Outils : Excel, Notion" }] }] },
+  ],
+});
+r = reviewCv(frcv(), TODAY, "fr");
+ok("French CV: no problems, and no US-only notes (name in capitals, US phone)", r.problems.length === 0 && !has(r.lookAt, /capitals|phone/), [r.problems, r.lookAt]);
+cv = frcv(); cv.sections[0].entries[0].dates = "Mars 2026 – Présent"; cv.sections[0].entries[1].dates = "06/2023 – déc. 2024";
+r = reviewCv(cv, TODAY, "fr");
+ok("French CV: house style for months and aujourd'hui", has(r.problems, /write "mars 2026"/) && has(r.problems, /write "aujourd'hui"/) && has(r.problems, /write "juin 2023"/), r.problems);
+cv = frcv(); [cv.sections[0].entries[0], cv.sections[0].entries[1]] = [cv.sections[0].entries[1], cv.sections[0].entries[0]];
+r = reviewCv(cv, TODAY, "fr");
+ok("French CV: out of order is flagged", has(r.problems, /not newest first. Current \("aujourd'hui"\)/), r.problems);
+cv = frcv(); cv.summary.body = "Profil dynamique et motivé."; cv.sections[0].entries[0].bullets[0].text = "Je gère la planification";
+r = reviewCv(cv, TODAY, "fr");
+ok("French CV: French clichés and first person are caught", has(r.problems, /clichés: dynamique, motivé/) && has(r.problems, /starts with "Je"/), r.problems);
+ok("English is still the default after a French check", reviewCv(base(), TODAY).problems.length === 0);
+ok("Other languages read dates loosely (German)", reviewCv({ ...frcv(), sections: [{ id: "experience", title: "BERUFSERFAHRUNG", entries: [{ id: "d1", org: "Test GmbH", place: "Berlin, Deutschland", role: "Assistent", dates: "Okt 2024 – heute", bullets: [{ id: "d11", text: "Betreut 20 Kunden" }] }] }] }, TODAY, "de").problems.length === 0);
+
 console.log(`\nCV rules: ${pass} passed, ${fail} failed`);
 process.exitCode = fail ? 1 : 0;

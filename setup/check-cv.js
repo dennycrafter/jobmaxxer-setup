@@ -1,5 +1,7 @@
 // Checks a master CV on the real tracker page before you save it.
-// Usage:  bash setup/check-cv.sh <master-cv.json> [preview.png]
+// Usage:  bash setup/check-cv.sh <master-cv.json> [preview.png] [--lang fr] [--paper a4]
+//   --lang:  the CV's language code (default en). "fr" checks French dates ("janv. 2025 – aujourd'hui").
+//   --paper: letter (default) or a4, the paper this language's CV prints on (profile/search.langs).
 // The JSON can be the master CV itself, or {"cv": <master CV>, ...} as saved in profile/cv.
 // Opens index.html in a hidden browser with a fake, empty database (nothing real is touched),
 // shows the Master CV page and prints what the page measured:
@@ -14,15 +16,17 @@ const path = require("path");
 const { reviewCv } = require("./cv-rules");
 
 const ROOT = path.resolve(__dirname, "..");
-const [, , cvPath, shotArg] = process.argv;
-if (!cvPath) { console.error("Usage: bash setup/check-cv.sh <master-cv.json> [preview.png]"); process.exit(2); }
+const args = process.argv.slice(2), flag = (n, d) => { const i = args.indexOf("--" + n); return i >= 0 ? String(args.splice(i, 2)[1] || d).toLowerCase() : d; };
+const lang = flag("lang", "en"), paper = flag("paper", "letter") === "a4" ? "a4" : "letter";
+const [cvPath, shotArg] = args;
+if (!cvPath) { console.error("Usage: bash setup/check-cv.sh <master-cv.json> [preview.png] [--lang fr] [--paper a4]"); process.exit(2); }
 let cv = JSON.parse(fs.readFileSync(cvPath, "utf8"));
 if (cv && cv.cv && cv.cv.sections) cv = cv.cv;
 const shot = shotArg || path.join(__dirname, "cv-preview.png");
 
 // Fake window.claude: an empty database holding only this CV. Writes go nowhere.
-const fake = (c) => {
-  const docs = { "profile/cv": { cv: c, rules: "" } };
+const fake = ({ c, lang, paper }) => {
+  const docs = { "profile/cv": { cv: c, rules: "" }, "profile/search": { langs: [{ code: lang, paper }] } };
   const db = {
     collection: () => ({ onSnapshot: (cb) => { setTimeout(() => cb({ docs: [] }), 0); return () => {}; } }),
     doc: (p) => ({
@@ -42,7 +46,7 @@ const fake = (c) => {
     const page = await browser.newPage({ viewport: { width: 1400, height: 1100 }, colorScheme: "dark" });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.addInitScript(fake, cv);
+    await page.addInitScript(fake, { c: cv, lang, paper });
     await page.goto("file://" + file);
     await page.waitForTimeout(900);
     await page.click("#me-btn");
@@ -59,11 +63,11 @@ const fake = (c) => {
       return { chip: document.getElementById("m-fit").textContent, fit, core, optional };
     }, cv);
     await page.locator("#m-pwrap").screenshot({ path: shot });
-    const checks = reviewCv(cv);
+    const checks = reviewCv(cv, new Date(), lang);
     const fits = !out.fit.over && !out.fit.spills.length && out.fit.linesLeft < 1;
     const ok = fits && !checks.problems.length;
     const result = ok ? "GOOD: one full page, no spills, newest first, consistent" : "NEEDS WORK" + (fits ? " (page fits; fix the problems below)" : "");
-    console.log(JSON.stringify({ result, chip: out.chip, problems: checks.problems, lookAt: checks.lookAt, ...out, picture: shot, pageErrors: errors }, null, 2));
+    console.log(JSON.stringify({ result, lang, paper, chip: out.chip, problems: checks.problems, lookAt: checks.lookAt, ...out, picture: shot, pageErrors: errors }, null, 2));
     if (!ok) console.log(`
 How to fix (only with true facts):
 - A spill: shorten that line to 110 characters or less, or add a true detail so it reaches 165 or more.

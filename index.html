@@ -263,6 +263,17 @@ input[type=search] { min-width: 0; width: 190px; }
 .meta .okcv { color: var(--fg); }
 .meta .okcv::before { content: "✓ "; color: var(--ok); }
 .meta .tailing { color: var(--info); }
+.meta .lang { font-weight: 600; letter-spacing: .03em; color: var(--fg); }
+/* CV language switch (drawer, master CV page, settings): same look as the zoom buttons */
+.langbar { gap: 10px; }
+.langbar .sublabel { margin: 0; }
+.langsw .zbtn.txt { padding: 0 11px; }
+.mphead .langsw { margin-left: auto; }
+.paperlbl { font: 500 12px var(--body); color: var(--muted); margin-left: 6px; }
+.page .nomaster { font: 400 13px/1.5 Arial, sans-serif; color: #555; padding: 40pt 36pt; }
+.langrows { display: grid; gap: 8px; }
+.langrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.langrow small { color: var(--muted); margin-left: 6px; }
 .sigs { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font: 500 12.5px var(--body); }
 .sig { display: inline-flex; align-items: baseline; gap: 7px; }
 .sig::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; transform: translateY(-1px); }
@@ -381,7 +392,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
 .kw { display: flex; flex-wrap: wrap; gap: 6px; }
 .paperwrap { position: relative; overflow: hidden; border-radius: 6px; margin: 0 auto; }
 /* True-scale US Letter page: same margins, font metrics and spacing as the .docx and .pdf */
-.page { --k: 1; --sec: 7pt; --ent: 3pt; --bul: 1pt; position: absolute; top: 0; left: 0; width: 612pt; min-height: 792pt; transform-origin: top left; background: var(--paper); color: var(--ink);
+.page { --k: 1; --sec: 7pt; --ent: 3pt; --bul: 1pt; position: absolute; top: 0; left: 0; width: var(--pw, 612pt); min-height: var(--ph, 792pt); transform-origin: top left; background: var(--paper); color: var(--ink);
   padding: 28pt 36pt 25pt; font: 400 10pt/1.15 var(--cv); line-height: calc(1.15 * var(--k)); font-kerning: none; font-variant-ligatures: none; box-shadow: 0 1px 3px rgba(0,0,0,.18); }
 .page a { color: var(--ink-link); text-decoration: underline; text-decoration-thickness: .5pt; text-underline-offset: 1.3pt; }
 .page .nm { text-align: center; font-weight: 700; font-size: 15pt; letter-spacing: 1.5pt; padding-bottom: 1pt; }
@@ -412,7 +423,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
 #p-new { width: 100%; min-height: 60px; resize: vertical; font: 400 13.5px var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; }
 .saved { display: block; margin-top: 6px; font-size: 12px; font-weight: 600; color: var(--info); white-space: normal; }
 .saved button { font: 600 12px var(--body); background: none; border: none; color: var(--fg); cursor: pointer; padding: 0; margin-left: 6px; text-decoration: underline; }
-.pbreak { position: absolute; left: 0; right: 0; top: 792pt; border-top: 1.5pt dashed #c62a22; }
+.pbreak { position: absolute; left: 0; right: 0; top: var(--ph, 792pt); border-top: 1.5pt dashed #c62a22; }
 .pbreak span { position: absolute; right: 6pt; top: 2pt; font: 600 9pt var(--body); color: #c62a22; background: var(--paper); padding: 0 4pt; }
 .fitchip { font: 600 12px var(--body); padding: 4px 9px; border-radius: 999px; }
 .fitchip.ok { background: var(--ok-soft); color: var(--ok); }
@@ -619,6 +630,11 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
       <p class="hint">More roles per morning makes the run take longer and uses more of your Claude plan.</p>
     </div>
     <div class="card">
+      <h3>CV languages and paper</h3>
+      <p class="hint">Each language has its own master CV, and each job gets its CV in the posting's language (you can switch it, or pick both). To add or remove a language, ask Claude in a chat: it builds that master CV with you.</p>
+      <div class="langrows" id="set-langs"></div>
+    </div>
+    <div class="card">
       <h3>About you</h3>
       <p class="hint">A few lines on your background, strengths and what you want. Used to grade how well each job fits you. Leave empty to use your CV summary.</p>
       <textarea id="set-about" rows="4" placeholder="e.g. Recent marketing graduate, strong writer, ran the uni society's socials. Wants entry level marketing or community roles." aria-label="About you"></textarea>
@@ -633,13 +649,13 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
 
   <section class="cvedit" id="cvedit" hidden aria-label="Master CV and voice">
     <div class="card mprev" id="mprev" hidden>
-      <div class="mphead"><h3>How it prints</h3><span class="fitchip" id="m-fit"></span></div>
+      <div class="mphead"><h3>How it prints <small class="paperlbl" id="m-paperlbl">US Letter</small></h3><span class="fitchip" id="m-fit"></span></div>
       <p class="hint" id="m-hint"></p>
       <div class="mpact"><button class="btn" type="button" id="m-dl">Download .docx</button><button class="btn" type="button" id="m-pdf">Download .pdf</button><span class="status" id="m-status"></span></div>
       <div class="mpwrap" id="m-pwrap"><div class="page" id="m-paper" aria-label="Master CV page preview"></div></div>
     </div>
     <div class="card cvmain">
-      <h3>Master CV</h3>
+      <div class="mphead"><h3>Master CV</h3><span class="zgrp langsw" id="cv-langs" role="group" aria-label="Master CV language" hidden></span></div>
       <p class="hint">Every tailored CV is built only from what is here. Reword lines, add or remove bullets. A fact you add here can be used in tailoring from then on, so only add what is true.</p>
       <div id="cv-form"><p class="hint">Loading your CV…</p></div>
     </div>
@@ -687,6 +703,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
   </div>
   <div class="dbody">
     <div class="card dacts">
+      <div class="actbar langbar" id="t-langbar" hidden><span class="sublabel">CV language</span><span class="zgrp langsw" id="t-langs" role="group" aria-label="CV language" hidden></span></div>
       <div class="actbar">
         <button class="btn primary" id="t-go">Tailor my CV</button>
         <button class="btn" id="t-stop" hidden>Stop</button>
@@ -701,6 +718,7 @@ details.card summary { cursor: pointer; font: 600 12px var(--body); text-transfo
     <div class="card dpaper">
       <div class="actbar papbar" id="t-papbar">
         <h3 style="margin:0" id="t-prevlabel">Your master CV</h3>
+        <span class="zgrp langsw" id="t-views" role="group" aria-label="Show the CV in" hidden></span>
         <span class="actbar zoomctl" role="group" aria-label="Zoom the CV">
           <span class="zgrp"><button type="button" class="zbtn" id="t-zout" aria-label="Zoom out" title="Zoom out (Cmd or Ctrl and minus)">&minus;</button><span class="zpct" id="t-zpct" aria-live="polite">100%</span><button type="button" class="zbtn" id="t-zin" aria-label="Zoom in" title="Zoom in (Cmd or Ctrl and plus)">+</button></span>
           <span class="zgrp"><button type="button" class="zbtn txt" id="t-zwidth" aria-pressed="true" title="Fill the width. Cmd or Ctrl and 0">Fit width</button><button type="button" class="zbtn txt" id="t-zpage" aria-pressed="false" title="Show the whole page at once">Whole page</button></span>
@@ -792,7 +810,9 @@ function buildCvDoc(D, cv) {
     if (last < s.length) out.push(run(s.slice(last), o));
     return out;
   };
-  const tabs = [{ type: D.TabStopType.RIGHT, position: 10800 }];
+  // Paper: US Letter (default) or A4, set per CV language in the search settings.
+  const PAPER = cv.paper === "a4" ? { width: 11906, height: 16838 } : { width: 12240, height: 15840 };
+  const tabs = [{ type: D.TabStopType.RIGHT, position: PAPER.width - 1440 }];
   // layout: k = line-height multiplier (1 = single), sec/ent/bul = gaps in pt before sections, entries, bullets.
   const L = Object.assign({ k: 1, sec: 7, ent: 3, bul: 1 }, cv.layout || {});
   const tw = (pt) => Math.round(pt * 20);
@@ -819,17 +839,18 @@ function buildCvDoc(D, cv) {
     creator: niceName(cv.name), title: niceName(cv.name) + " CV",
     styles: { default: { document: { run: { font: F, size: 20 } } } },
     numbering: { config: [{ reference: "cvbullet", levels: [{ level: 0, format: D.LevelFormat.BULLET, text: "▪", alignment: D.AlignmentType.LEFT, style: { paragraph: { indent: { left: 300, hanging: 220 } } } }] }] },
-    sections: [{ properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 560, right: 720, bottom: 500, left: 720 } } }, children: kids }],
+    sections: [{ properties: { page: { size: PAPER, margin: { top: 560, right: 720, bottom: 500, left: 720 } } }, children: kids }],
   });
 }
 
 
 
 // ---------- CV .pdf builder (embedded Liberation Sans = Arial metrics) ----------
-// Builds the CV as a PDF with the same layout as the .docx (Letter, Arial-metric Helvetica, 10pt).
+// Builds the CV as a PDF with the same layout as the .docx (Letter or A4, Arial-metric Helvetica, 10pt).
 // Browser: buildCvPdf(window.jspdf.jsPDF, cv). Node: buildCvPdf(require("jspdf").jsPDF, cv).
 function buildCvPdf(JsPDF, cv, fonts) {
-  const doc = new JsPDF({ unit: "pt", format: "letter", compress: true });
+  const A4 = cv.paper === "a4";
+  const doc = new JsPDF({ unit: "pt", format: A4 ? "a4" : "letter", compress: true });
   // fonts: {normal, bold, italic} as base64 TTF (Liberation Sans, metric-identical to Arial). Falls back to Helvetica.
   let FAM = "helvetica";
   if (fonts && fonts.normal && fonts.bold && fonts.italic) {
@@ -837,7 +858,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
     FAM = "CVSans";
   }
   doc.setProperties({ title: niceName(cv.name) + " CV", author: niceName(cv.name) });
-  const PW = 612, PH = 792, ML = 36, MR = 36, MT = 28, MB = 25, W = PW - ML - MR;
+  const PW = A4 ? 595.28 : 612, PH = A4 ? 841.89 : 792, ML = 36, MR = 36, MT = 28, MB = 25, W = PW - ML - MR;
   const LINK = [31, 78, 121];
   // layout: k = line-height multiplier (1 = Word single), sec/ent/bul = gaps in pt before sections, entries, bullets.
   const L = Object.assign({ k: 1, sec: 7, ent: 3, bul: 1 }, cv.layout || {});
@@ -984,7 +1005,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
     return r.length ? r : ROLE_TYPES;
   };
   const DEFAULTS = { cities: ["Austin"], arrangements: ["On-site", "Hybrid"], jobTypes: ["Full-time"], level: "entry", roles: null, maxYears: 3, dailyTarget: 30, maxNew: 40, skipCompanies: [], refresh: "new roles daily 6:55am" };
-  let search = null, setDirty = false, draftCities = null, draftRoles = null;
+  let search = null, setDirty = false, draftCities = null, draftRoles = null, draftLangs = null;
   const listOr = (v, d) => (Array.isArray(v) && v.length ? v.map((x) => String(x).trim()).filter(Boolean) : d);
   const numOr = (v, d, lo, hi) => { const n = Math.round(Number(v)); return n >= lo && n <= hi ? n : d; };
   function cfg() {
@@ -1061,6 +1082,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
     if (setDirty && !force) return;
     const c = cfg();
     draftCities = [...c.cities]; paintCities();
+    draftLangs = langs(); paintLangRows();
     $("set-arr").innerHTML = ARRANGEMENTS.map((a) => `<label class="check"><input type="checkbox" name="set-arr" id="set-arr-${a.toLowerCase()}" value="${a}"${c.arrangements.includes(a) ? " checked" : ""}><span>${a}</span></label>`).join("");
     $("set-jt").innerHTML = JOB_TYPES.map((a) => `<label class="check"><input type="checkbox" name="set-jt" id="set-jt-${a.toLowerCase()}" value="${a}"${c.jobTypes.includes(a) ? " checked" : ""}><span>${a}</span></label>`).join("");
     draftRoles = c.roleTypes.map(([id, name, ex]) => ({ id, name, ex, on: c.roles.includes(id) })); paintRoles();
@@ -1071,6 +1093,9 @@ function buildCvPdf(JsPDF, cv, fonts) {
     $("set-save").disabled = !writable;
     ddSync($("set-years")); ddSync($("set-level"));
     setDirty = false;
+  }
+  function paintLangRows() {
+    $("set-langs").innerHTML = draftLangs.map((l, i) => `<div class="langrow"><span>${esc(langName(l.code))}${i === 0 && draftLangs.length > 1 ? "<small>main</small>" : ""}</span><span class="zgrp" role="group" aria-label="Paper for ${esc(langName(l.code))}">${Object.keys(PAPERS).map((k) => `<button type="button" class="zbtn txt" data-paper="${i}:${k}" aria-pressed="${l.paper === k}"${writable ? "" : " disabled"}>${PAPERS[k].label}</button>`).join("")}</span></div>`).join("");
   }
   function addCity() {
     const v = $("set-city-new").value.trim().replace(/\s+/g, " ");
@@ -1093,16 +1118,94 @@ function buildCvPdf(JsPDF, cv, fonts) {
     const data = { cities: draftCities, arrangements, jobTypes, level: LEVELS[$("set-level").value] ? $("set-level").value : "entry",
       roleTypes: draftRoles.map((r) => ({ id: r.id, name: r.name, ex: r.ex })), roles, maxYears: numOr($("set-years").value, 3, 2, 99),
       dailyTarget: numOr($("set-target").value, DEFAULTS.dailyTarget, 1, 100), maxNew: numOr($("set-max").value, DEFAULTS.maxNew, 5, 120),
-      skipCompanies: $("set-skip").value.split("\n").map((x) => x.trim()).filter(Boolean), about: $("set-about").value.trim(), refresh: cfg().refresh, updated: new Date().toISOString() };
+      skipCompanies: $("set-skip").value.split("\n").map((x) => x.trim()).filter(Boolean), about: $("set-about").value.trim(), refresh: cfg().refresh,
+      langs: (draftLangs || langs()).map((l) => ({ code: l.code, paper: l.paper })), updated: new Date().toISOString() };
     $("set-save").disabled = true;
     try {
       await db.doc("profile/search").set(data);
-      search = data; setDirty = false; paintScope(); paintSettings(true); paintCityFilter(); render();
+      search = data; setDirty = false; syncMasters(); paintScope(); paintSettings(true); paintCityFilter(); render();
       st.className = "status"; st.textContent = "Saved. The next morning search uses these settings."; toast("Settings saved");
     } catch (_) { st.textContent = "Couldn't save. Try again in a moment."; }
     finally { $("set-save").disabled = !writable; }
   }
   paintScope();
+
+  // ---------- CV languages and paper ----------
+  // profile/search.langs = [{code, paper}], the person's CV languages; the first is the main one. The main language's
+  // master CV is profile/cv; every other language has its own master CV in profile/cv-<code>. A job keeps its drafts in
+  // tailor/chat (main language) and tailor_<code>/chat_<code> (the others). paper is "letter" or "a4", per language.
+  // With one language (the default, English on US Letter) the page looks and works exactly as before.
+  const LANG_INFO = { en: ["English", "English"], fr: ["Français", "French"], de: ["Deutsch", "German"], es: ["Español", "Spanish"], it: ["Italiano", "Italian"],
+    nl: ["Nederlands", "Dutch"], pt: ["Português", "Portuguese"], pl: ["Polski", "Polish"], sv: ["Svenska", "Swedish"], da: ["Dansk", "Danish"], no: ["Norsk", "Norwegian"],
+    fi: ["Suomi", "Finnish"], ga: ["Gaeilge", "Irish"], ro: ["Română", "Romanian"], cs: ["Čeština", "Czech"], uk: ["Українська", "Ukrainian"], ru: ["Русский", "Russian"] };
+  const PAPERS = { letter: { w: 612, h: 792, label: "US Letter" }, a4: { w: 595.28, h: 841.89, label: "A4" } };
+  function langs() {
+    const s = search || {}, out = [];
+    for (const x of Array.isArray(s.langs) ? s.langs : []) {
+      const code = String((x && typeof x === "object" ? x.code : x) || "").toLowerCase().trim();
+      if (!/^[a-z]{2,3}$/.test(code) || out.some((l) => l.code === code)) continue;
+      out.push({ code, paper: x && PAPERS[x.paper] ? x.paper : null });
+    }
+    if (!out.length) out.push({ code: "en", paper: null });
+    const def = (out.find((l) => l.paper) || {}).paper || (PAPERS[s.paper] ? s.paper : "letter");
+    return out.map((l) => ({ code: l.code, paper: l.paper || def }));
+  }
+  const langCodes = () => langs().map((l) => l.code);
+  const mainLang = () => langs()[0].code;
+  const multiLang = () => langs().length > 1;
+  const langName = (c) => (LANG_INFO[c] ? LANG_INFO[c][0] : String(c).toUpperCase());
+  const langEn = (c) => (LANG_INFO[c] ? LANG_INFO[c][1] : String(c).toUpperCase());
+  const paperOf = (c) => (langs().find((l) => l.code === c) || langs()[0]).paper;
+  const cvDocOf = (c) => (c === mainLang() ? "profile/cv" : "profile/cv-" + c);
+  const tKey = (c) => (c === mainLang() ? "tailor" : "tailor_" + c);
+  const cKey = (c) => (c === mainLang() ? "chat" : "chat_" + c);
+  const tailorOf = (j, c) => (j && j[tKey(c)] && j[tKey(c)].t) || null;
+  const tailoredLangs = (j) => langCodes().filter((c) => tailorOf(j, c));
+  const starterRules = (c) => (c === "en" ? STARTER_RULES : STARTER_RULES.replace("plain US English", `plain, natural ${langEn(c)}`));
+  // Every prompt that writes CV lines says which language to write in (only needed beyond plain English).
+  const langLine = (cx) => (multiLang() || cx.lang !== "en" ? `LANGUAGE: this CV is in ${langEn(cx.lang)}, like the master CV below. Write every word of it in ${langEn(cx.lang)}, even when the posting is in another language. Keep names of companies, schools, products and tools as they are.\n` : "");
+  // Master CVs by language, rebuilt from the saved docs whenever the languages or a master change.
+  const cvDocs = {}, cvSubs = new Set();
+  let masters = {}, rulesOf = {};
+  function syncMasters() {
+    masters = {}; rulesOf = {};
+    for (const c of langCodes()) {
+      const p = cvDocOf(c);
+      if (db && !cvSubs.has(p)) { cvSubs.add(p); db.doc(p).onSnapshot((d) => { cvDocs[p] = d.exists ? d.data() : null; syncMasters(); onMasters(); }, () => {}); }
+      const data = cvDocs[p];
+      masters[c] = data && data.cv ? data.cv : null;
+      rulesOf[c] = (data && data.rules) || starterRules(c);
+    }
+    master = masters[mainLang()]; rules = rulesOf[mainLang()];
+  }
+  const cxOf = (c) => ({ lang: c, master: masters[c] || null, rules: rulesOf[c] || starterRules(c), paper: paperOf(c) });
+  // Which language a posting is written in, out of the person's CV languages (a quick count of common words).
+  const STOPWORDS = { en: "the and with you our for are will your this that have from about who what", fr: "le la les et des une pour vous nous avec est dans sur votre vos du au aux qui que être",
+    de: "der die das und mit für sie wir ist ein eine den zu auf ihre bei oder", es: "el los las y con para nosotros es una del por en tu tus que como",
+    it: "il gli e con per che una sono di della nel tuo nostro come", nl: "het en met voor je wij een van op te ons jouw bij", pt: "os as com para você nós uma do da em seu sua que" };
+  function postLang(text) {
+    const codes = langCodes(); if (codes.length < 2) return codes[0];
+    const words = (String(text || "").toLowerCase().match(/\p{L}+/gu) || []).slice(0, 800);
+    let best = null, bestN = 0;
+    for (const c of codes) {
+      const set = new Set((STOPWORDS[c] || "").split(" ").filter(Boolean)); if (!set.size) continue;
+      const n = words.filter((w) => set.has(w)).length;
+      if (n > bestN) { best = c; bestN = n; }
+    }
+    return best || codes[0];
+  }
+  const jobLang = (j) => (langCodes().includes(j && j.lang) ? j.lang : postLang(`${(j && j.role) || ""} ${(j && j.jd) || ""}`));
+  // The CV languages a job needs: what was chosen for it (cvLangs), otherwise the posting's own language.
+  const jobCvLangs = (j) => { const want = Array.isArray(j && j.cvLangs) ? j.cvLangs : []; const out = langCodes().filter((c) => want.includes(c)); return out.length ? out : [jobLang(j)]; };
+  const langTag = (codes) => codes.map((c) => c.toUpperCase()).join(" + ");
+  function setPaper(page, paper) {
+    const P = PAPERS[paper] ? paper : "letter";
+    if (!page || page.dataset.paper === P) return;
+    page.dataset.paper = P; page.dataset.pw = PAPERS[P].w; page.dataset.ph = PAPERS[P].h;
+    page.style.setProperty("--pw", PAPERS[P].w + "pt"); page.style.setProperty("--ph", PAPERS[P].h + "pt");
+  }
+  const pageW = (page) => Number(page && page.dataset.pw) || 612, pageH = (page) => Number(page && page.dataset.ph) || 792;
+  function onMasters() { paintMe(); if (tab === "cv") paintCv(); if (cur) { paperKey = ""; paintDrawer(); } }
 
   // ---------- top bar and profile menu ----------
   const VIEW_TITLES = { queue: "Queue", applied: "Applied", interview: "Interviews", closed: "Closed", mine: "My links", settings: "Search settings", cv: "Master CV and voice", prefs: "Your preferences" };
@@ -1125,7 +1228,8 @@ function buildCvPdf(JsPDF, cv, fonts) {
   }
 
   // ---------- master CV and voice editor ----------
-  let cvDraft = null, cvDirty = false;
+  let cvDraft = null, cvDirty = false, edLangPick = null;
+  const edLang = () => (langCodes().includes(edLangPick) ? edLangPick : mainLang());
   const EYE_ON = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>`;
   const EYE_OFF = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.1A10.9 10.9 0 0 1 12 6c6.4 0 10 6 10 6a17.6 17.6 0 0 1-3.1 3.9M6.6 6.6C3.9 8.3 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>`;
   const rowsFor = (s) => Math.min(8, Math.max(1, Math.ceil(String(s || "").length / 95)));
@@ -1157,9 +1261,17 @@ function buildCvPdf(JsPDF, cv, fonts) {
     });
     $("cv-form").innerHTML = h;
   }
+  function paintCvLangs() {
+    const box = $("cv-langs"); box.hidden = !multiLang();
+    box.innerHTML = multiLang() ? langCodes().map((c) => `<button type="button" class="zbtn txt" data-edlang="${esc(c)}" aria-pressed="${c === edLang()}">${esc(langName(c))}</button>`).join("") : "";
+    $("m-paperlbl").textContent = PAPERS[paperOf(edLang())].label;
+  }
   function paintCv(force) {
     queueMaster(0);
     if (cvDirty && !force) return;
+    paintCvLangs();
+    const master = masters[edLang()], rules = rulesOf[edLang()];
+    if (!master && multiLang() && edLang() !== mainLang()) { $("cv-form").innerHTML = `<p class="hint">No ${esc(langName(edLang()))} master CV yet. Open a Claude chat and say "Build my ${esc(langEn(edLang()))} master CV for jobmaxxer". Claude writes it with you from your facts, and it shows up here as soon as it's saved.</p>`; cvDraft = null; $("cv-save").disabled = true; return; }
     if (!master) { $("cv-form").innerHTML = `<p class="hint">${db ? "No master CV yet. Go back to the Claude chat where you set this tracker up, attach or paste your CV, and ask Claude to add it as your master CV. It shows up here as soon as it's saved." : "Your master CV hasn't loaded yet. If this stays, reload the page."}</p>`; return; }
     cvDraft = JSON.parse(JSON.stringify(master));
     renderCvForm();
@@ -1179,9 +1291,10 @@ function buildCvPdf(JsPDF, cv, fonts) {
     const newRules = $("cv-rules").value;
     $("cv-save").disabled = true;
     try {
-      await db.doc("profile/cv").update({ cv: cvDraft, rules: newRules });
+      const lang = edLang(), path = cvDocOf(lang);
+      await db.doc(path).update({ cv: cvDraft, rules: newRules });
       await db.doc("profile/voice").set(newVoice);
-      master = JSON.parse(JSON.stringify(cvDraft)); rules = newRules; voice = newVoice;
+      cvDocs[path] = { ...(cvDocs[path] || {}), cv: JSON.parse(JSON.stringify(cvDraft)), rules: newRules }; syncMasters(); voice = newVoice;
       cvDirty = false; paintCv(true); paintMe();
       st.className = "status"; st.textContent = "Saved. The next CV you tailor uses this."; toast("Master CV saved");
     } catch (_) { st.textContent = "Couldn't save. Try again in a moment."; }
@@ -1523,7 +1636,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
     // same day: the exact time of applying (appliedAt, saved since v39) decides. Older records don't have it, so the time
     // the CV was tailored stands in (people usually apply right after); with neither, A to Z.
     const when = (j) => String(j.applied || j.found || "");
-    const at = (j) => Number(j.appliedAt) || (j.tailor && Date.parse(j.tailor.at)) || 0;
+    const at = (j) => Number(j.appliedAt) || Math.max(0, ...tailoredLangs(j).map((c) => Date.parse(j[tKey(c)].at) || 0)) || 0;
     const bySort = (a, b) => sortBy === "new" ? when(b).localeCompare(when(a)) || at(b) - at(a) || String(a.company).localeCompare(String(b.company))
       : sortBy === "old" ? when(a).localeCompare(when(b)) || at(a) - at(b) || String(a.company).localeCompare(String(b.company))
       : String(a.followup || "").localeCompare(String(b.followup || "")) || String(b.applied || "").localeCompare(String(a.applied || ""));
@@ -1559,8 +1672,9 @@ function buildCvPdf(JsPDF, cv, fonts) {
           <div class="meta">${[
             multiCity ? `<span class="city">${esc(cityOf(j))}</span>` : "",
             esc(multiCity ? setupText(j.arrangement, cityOf(j)) : j.arrangement || ""), j.salary ? esc(j.salary) : "", j.source ? esc(j.source) : "",
-            tailoring.has(j.id) ? `<span class="tailing">${tailoring.get(j.id).queued ? "Queued for tailoring" : "Tailoring CV…"}</span>` : j.tailor ? `<span class="okcv">CV tailored</span>` : j.cv ? `${esc(j.cv)} CV` : "",
+            tailoring.has(j.id) ? `<span class="tailing">${tailoring.get(j.id).queued ? "Queued for tailoring" : "Tailoring CV…"}</span>` : tailoredLangs(j).length ? `<span class="okcv">CV tailored${multiLang() ? " " + langTag(tailoredLangs(j)) : ""}</span>` : j.cv ? `${esc(j.cv)} CV` : "",
             j.status === "new" && j.deferred ? "Pushed back" : "",
+            multiLang() && jobCvLangs(j).some((c) => !tailorOf(j, c)) ? `<span class="lang" title="CV language: ${esc(jobCvLangs(j).map(langName).join(" and "))}">CV ${langTag(jobCvLangs(j))}</span>` : "",
           ].filter(Boolean).map((x) => `<span class="mi">${x}</span>`).join("")}</div>
           ${isDue || j.pending || hasAuthNote(j.auth) || flags.length ? `<div class="sigs">
             ${isDue ? `<span class="sig bad">Follow-up due</span>` : ""}
@@ -1573,7 +1687,7 @@ function buildCvPdf(JsPDF, cv, fonts) {
         </div>
         <div class="acts">
           ${j.url ? `<a class="btn quiet" href="${esc(safeUrl(j.url))}" target="_blank" rel="noopener">Open posting</a>` : ""}
-          ${canTailor ? `<button class="btn" data-act="tailor">${j.tailor ? "View CV" : "Tailor CV"}</button>` : ""}
+          ${canTailor ? `<button class="btn" data-act="tailor">${tailoredLangs(j).length ? "View CV" : "Tailor CV"}</button>` : ""}
           ${j.status === "new" ? `<button class="btn primary" data-act="applied"${writable ? "" : " disabled"}>Applied</button><button class="btn quiet" data-act="skip"${writable ? "" : " disabled"}>Skip</button>` : ""}
           <select data-act="status" aria-label="Status for ${esc(j.role)}" id="st-${esc(j.id)}"${writable ? "" : " disabled"}>${statusOpts}</select>
         </div>
@@ -1612,31 +1726,30 @@ function buildCvPdf(JsPDF, cv, fonts) {
   const links = (s) => [...String(s).matchAll(LINK_RE)].map((m) => m[0]);
   const nums = (s) => (String(s).replace(LINK_RE, "$1").match(/\d+(?:[.,]\d+)*/g) || []);
   const clean = (s) => String(s || "").replace(/\s*—\s*/g, ", ").replace(/\s+/g, " ").trim();
-  const masterText = () => JSON.stringify(master);
   // Like clean(), but keeps paragraph breaks for chat replies and answers.
   const cleanMulti = (s) => String(s || "").replace(/\r/g, "").replace(/\s*\u2014\s*/g, ", ").split("\n").map((l) => l.replace(/[ \t]+/g, " ").trimEnd()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 
   // Compose a full CV from the master and a tailoring object, enforcing the fact rules.
-  function compose(t) {
+  function compose(t, M = master) {
     // Full master entries (including hidden optional bullets) are the only source of facts.
-    const full = {}; master.sections.forEach((s) => s.entries.forEach((e) => (full[e.id] = e)));
-    const out = JSON.parse(JSON.stringify(master));
+    const full = {}; M.sections.forEach((s) => s.entries.forEach((e) => (full[e.id] = e)));
+    const out = JSON.parse(JSON.stringify(M));
     // optional entries (e.g. an old school or a side hobby) appear only when the draft gives them bullets
     const wantEntry = (e) => !e.optional || !!(t && t.bullets && Array.isArray(t.bullets[e.id]) && t.bullets[e.id].length);
     out.sections.forEach((s) => { s.entries = s.entries.filter(wantEntry); s.entries.forEach((e) => (e.bullets = e.bullets.filter((b) => !b.optional))); });
     const tidy = () => out.sections.forEach((s) => (s.entries = s.entries.filter((e) => e.bullets.length)));
     let reverted = 0;
     if (!t) { tidy(); return { cv: out, reverted, changed: new Set() }; }
-    const all = masterText();
+    const all = JSON.stringify(M);
     const changed = new Set();
     const ns = Number(t.style && t.style.nameSize);
     if (ns > 15 && ns <= 20) { out.nameSize = Math.round(ns * 2) / 2; changed.add("name"); }
     if (t.summary && t.summary.lead && t.summary.body) {
       const lead = clean(t.summary.lead), body = clean(t.summary.body);
       const bad = nums(lead + " " + body).some((n) => !all.includes(n));
-      if (bad) reverted++; else { out.summary = { lead, body }; if (lead !== master.summary.lead || body !== master.summary.body) changed.add("summary"); }
+      if (bad) reverted++; else { out.summary = { lead, body }; if (lead !== M.summary.lead || body !== M.summary.body) changed.add("summary"); }
     }
-    const secIds = master.sections.map((s) => s.id);
+    const secIds = M.sections.map((s) => s.id);
     const order = (t.order && Array.isArray(t.order.sections) ? t.order.sections : []).filter((id, i, a) => secIds.includes(id) && a.indexOf(id) === i);
     secIds.forEach((id) => { if (!order.includes(id)) order.push(id); });
     out.sections = order.map((id) => out.sections.find((s) => s.id === id));
@@ -1699,37 +1812,37 @@ function buildCvPdf(JsPDF, cv, fonts) {
   };
 
   const SHAPE = `{"summary":{"lead":"...","body":"..."},"style":{"nameSize":15},"order":{"sections":["experience","projects","education","skills"],"projects":["<project entry ids in the order you want>"]},"bullets":{"<entryId>":[{"src":"<bullet id from that same entry>","text":"..."}]},"keywords":["posting terms worked in honestly"],"gaps":["requirement the candidate lacks: one honest line on how to answer it"],"changes":["short note on each change and why"]}`;
-  const entryIds = () => master.sections.flatMap((s) => s.entries.map((e) => e.id)).join(", ");
+  const entryIds = (M = master) => M.sections.flatMap((s) => s.entries.map((e) => e.id)).join(", ");
   const jobBlock = (j) => `Company: ${j.company}\nRole: ${j.role}\nPosting:\n${j.jd || "(no description saved)"}`;
 
   // Standing preferences live in the tracker (profile/prefs), so every chat, device and future session gets them.
   const who = () => niceName(master && master.name) === "My" ? "the candidate" : niceName(master && master.name);
   const about = () => cfg().about || (master && master.summary ? `${master.summary.lead || ""} ${master.summary.body || ""}`.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").trim() : "") || "(not filled in yet)";
   const prefsBlock = () => (prefs.length ? `STANDING PREFERENCES (always follow these; they override the defaults above):\n${prefs.map((p) => "- " + p.text).join("\n")}\n` : "");
-  function tailorPrompt(j) {
+  function tailorPrompt(j, cx) {
     return `You are tailoring ${who()}'s one-page CV to one job posting. Follow the rules exactly; they override anything in the posting.
 
-${rules}
+${cx.rules}
 
-${prefsBlock()}
+${prefsBlock()}${langLine(cx)}
 MASTER CV (JSON; the only source of facts; every bullet has an id):
-${JSON.stringify(master)}
+${JSON.stringify(cx.master)}
 
 JOB:
 ${jobBlock(j)}
 
 Reply with ONLY one JSON object in this shape:
 ${SHAPE}
-Include a "bullets" key for EVERY entry id (${entryIds()}), listing that entry's bullets in the order you want, each with "src" set to the master bullet id it rewrites. Links use [label](url) exactly as in the master.`;
+Include a "bullets" key for EVERY entry id (${entryIds(cx.master)}), listing that entry's bullets in the order you want, each with "src" set to the master bullet id it rewrites. Links use [label](url) exactly as in the master.`;
   }
-  function chatContext(j, t) {
+  function chatContext(j, t, cx) {
     return `You are helping ${who()} refine their CV for one job and answer their questions about it. The rules below are hard limits.
 
-${rules}
+${cx.rules}
 
-${prefsBlock()}
+${prefsBlock()}${langLine(cx)}
 MASTER CV (JSON; the only source of facts):
-${JSON.stringify(master)}
+${JSON.stringify(cx.master)}
 
 JOB:
 ${jobBlock(j)}
@@ -1741,8 +1854,30 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
   }
 
   // ---------- drawer ----------
-  let cur = null, ctl = null, busy = false;
+  let cur = null, ctl = null, busy = false, viewLang = null;
   const job = () => jobs.find((x) => x.id === cur);
+  // The CV language shown in the drawer. The switch picks which language(s) the job needs (FR, EN or both).
+  const vl = () => (langCodes().includes(viewLang) ? viewLang : mainLang());
+  // What the Tailor button makes now: the needed languages without a draft yet, or else the one on screen.
+  function tailorPlan(j) { const missing = jobCvLangs(j).filter((c) => !tailorOf(j, c)); return missing.length ? missing : [vl()]; }
+  function paintLangSwitch() {
+    const j = job(), box = $("t-langs"), views = $("t-views");
+    box.hidden = views.hidden = $("t-langbar").hidden = !(j && multiLang());
+    if (box.hidden) { box.innerHTML = views.innerHTML = ""; return; }
+    const all = langCodes(), need = jobCvLangs(j), every = need.length === all.length;
+    box.innerHTML = all.map((c) => `<button type="button" class="zbtn txt" data-lang="${esc(c)}" aria-pressed="${need.length === 1 && need[0] === c}" title="${esc(langName(c))} CV">${esc(langName(c))}</button>`).join("")
+      + `<button type="button" class="zbtn txt" data-lang="*" aria-pressed="${every}" title="${all.length > 2 ? "A CV in every language" : "A CV in each language"}">${all.length > 2 ? "All" : "Both"}</button>`;
+    views.hidden = need.length < 2;
+    views.innerHTML = need.length < 2 ? "" : need.map((c) => `<button type="button" class="zbtn txt" data-view="${esc(c)}" aria-pressed="${c === vl()}">${esc(c.toUpperCase())}${tailorOf(j, c) ? " ✓" : ""}</button>`).join("");
+  }
+  async function pickLang(c) {
+    const j = job(); if (!j) return;
+    const want = c === "*" ? langCodes() : [c];
+    if (c !== "*") viewLang = c; else if (!want.includes(vl())) viewLang = want[0];
+    j.cvLangs = want; paperKey = ""; paintDrawer(); requestAnimationFrame(fitPage);
+    if (writable) await write(j.id, { cvLangs: want });
+  }
+  function pickView(c) { viewLang = c; paperKey = ""; paintDrawer(); requestAnimationFrame(fitPage); }
 
   // Drawer tools tabs: Refine the CV (chat), Application answers, Notes, Job description.
   const PANES = ["chat", "ans", "notes", "jd"];
@@ -1755,6 +1890,7 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
   }
   function openDrawer(id) {
     cur = id; const j = job(); if (!j) return;
+    viewLang = jobCvLangs(j)[0]; paperKey = "";
     $("t-co").textContent = j.company; $("t-title").textContent = j.role;
     $("t-jd").value = j.jd || ""; showPane(j.jd ? "chat" : "jd");
     $("t-copybox").hidden = true; $("t-status").textContent = ""; $("t-status").className = "status";
@@ -1777,7 +1913,7 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
     const dis = writable ? "" : " disabled";
     $("t-jobacts").innerHTML = `${j.status !== "new" && j.applied ? `<span class="stat"><b>✓</b> Applied ${esc(j.applied)}${j.status === "applied" && j.followup ? " · follow up " + esc(j.followup) : ""}</span>` : ""}
       ${j.url ? `<a class="btn" href="${esc(safeUrl(j.url))}" target="_blank" rel="noopener">Open posting</a>` : ""}
-      ${j.status === "new" ? `<button class="btn${j.tailor ? " primary" : ""}" data-dact="applied"${dis}>Applied</button><button class="btn" data-dact="skip"${dis}>Skip</button>` : ""}
+      ${j.status === "new" ? `<button class="btn${tailoredLangs(j).length ? " primary" : ""}" data-dact="applied"${dis}>Applied</button><button class="btn" data-dact="skip"${dis}>Skip</button>` : ""}
       <select data-dact="status" id="dst-${esc(j.id)}" aria-label="Status"${dis}>${opts}</select>`;
     ddEnhance($("t-jobacts").querySelector("select"));
     const n = $("t-notes"); if (document.activeElement !== n) n.value = j.notes || "";
@@ -1802,22 +1938,34 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
   let paperKey = "", drawerKey = "";
   function paintDrawer() {
     paintJobActs();
-    const j = job(); if (!j || !master) return;
-    const t = j.tailor && j.tailor.t;
-    const { cv, reverted, changed } = compose(t);
+    paintLangSwitch();
+    const j = job(), lang = vl(), M = masters[lang]; if (!j) return;
+    if (!M) {
+      if (!master) return;
+      // a language without its own master CV yet
+      paperKey = ""; $("t-paper").innerHTML = `<p class="nomaster">No ${esc(langName(lang))} master CV yet. Open a Claude chat and say "Build my ${esc(langEn(lang))} master CV for jobmaxxer". Claude writes it with you, then come back and tailor.</p>`;
+      $("t-prevlabel").textContent = langName(lang); $("t-fitrow").hidden = true; $("t-result").hidden = true; $("t-noresult").hidden = false;
+      $("t-go").textContent = "Tailor my CV"; $("t-dl").hidden = $("t-pdf").hidden = true; $("t-msgs").innerHTML = ""; fitPage(); paintAnswers(j); return;
+    }
+    const t = tailorOf(j, lang);
+    const { cv, reverted, changed } = compose(t, M);
     const ph = paperHtml(cv, changed);
-    if (ph !== paperKey) {
-      paperKey = ph;
+    if (ph + lang + paperOf(lang) !== paperKey) {
+      paperKey = ph + lang + paperOf(lang);
+      setPaper($("t-paper"), paperOf(lang)); $("t-paper").lang = lang;
       $("t-paper").innerHTML = ph;
       $("t-paper").dataset.name = String(cv.nameSize || 15);
       $("t-paper").dataset.lockname = cv.nameSize ? "1" : "";
       layoutPage();
     }
     fitPage(); paintFix();
-    $("t-prevlabel").textContent = t ? "Tailored draft" : "Your master CV";
+    $("t-prevlabel").textContent = (t ? "Tailored draft" : "Your master CV") + (multiLang() && jobCvLangs(j).length < 2 ? " · " + langName(lang) : "");
     $("t-fitrow").hidden = !t;
-    $("t-go").textContent = t ? "Re-tailor from scratch" : "Tailor my CV"; $("t-go").classList.toggle("primary", !t);
+    const plan = tailorPlan(j), redo = plan.length === 1 && !!tailorOf(j, plan[0]);
+    $("t-go").textContent = plan.length > 1 ? (plan.length === 2 ? "Tailor both CVs" : `Tailor all ${plan.length} CVs`) : redo ? (jobCvLangs(j).length > 1 ? `Re-tailor ${langName(plan[0])} from scratch` : "Re-tailor from scratch") : jobCvLangs(j).length > 1 ? `Tailor ${langName(plan[0])} CV` : "Tailor my CV";
+    $("t-go").classList.toggle("primary", !redo);
     $("t-dl").hidden = !downloads; $("t-pdf").hidden = !downloads;
+    $("t-dl").textContent = "Download .docx" + (multiLang() ? " (" + lang.toUpperCase() + ")" : ""); $("t-pdf").textContent = "Download .pdf" + (multiLang() ? " (" + lang.toUpperCase() + ")" : "");
     $("t-result").hidden = !t; $("t-noresult").hidden = !!t;
     $("t-notecount").textContent = t && Array.isArray(t.gaps) && t.gaps.length ? t.gaps.length : "";
     if (t) {
@@ -1827,7 +1975,7 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
       $("t-reverts").hidden = !reverted;
       $("t-reverts").textContent = reverted ? `${reverted} line${reverted > 1 ? "s were" : " was"} put back to your original wording because the rewrite changed a number or dropped a link.` : "";
     }
-    const chat = Array.isArray(j.chat) ? j.chat : [];
+    const chat = Array.isArray(j[cKey(lang)]) ? j[cKey(lang)] : [];
     $("t-msgs").innerHTML = chat.length ? chat.map((m) => `<div class="msg ${m.role === "user" ? "user" : "assistant"}">${esc(m.content)}${m.updated ? `<span class="upd">Draft updated</span>` : m.failed ? `<span class="upd bad">Edit failed. Your draft was NOT changed. Send the request again.</span>` : ""}${savedHtml(m)}</div>`).join("") : `<p class="hint">No messages yet.</p>`;
     $("t-msgs").scrollTop = $("t-msgs").scrollHeight;
     paintAnswers(j);
@@ -1919,6 +2067,7 @@ For every message from them, reply with ONLY one JSON object: {"reply":"a short,
     const roleNames = picked.map((r) => r[1] + (r[2] ? ` (${r[2]})` : "")).join("; ");
     const names = picked.map((r) => r[1]);
     const years = c.maxYears >= 99 ? "" : `, nothing asking for ${c.maxYears}+ years`;
+    const ls = langCodes(), langKeys = multiLang() ? `,"lang":"the language the posting is written in: one of ${ls.join(" | ")} (closest one)","cvLangs":["the CV language(s) to send, from ${ls.join(" | ")}: usually just the posting's language; list more than one only if the posting asks for a CV in each"]` : "";
     return `Turn this job posting into a record for ${who()}'s job tracker.
 
 About ${who()} (for fit only): ${about()}
@@ -1929,7 +2078,7 @@ Posting text:
 ${text}
 
 Reply with ONLY one JSON object:
-{"company":"company name","role":"exact job title","city":"the one of their cities (${cfg().cities.join(", ")}) this job is in, or the job's own city if none","arrangement":"e.g. Hybrid, Austin","salary":"as shown, or empty","auth":"quote any citizenship, sponsorship, visa or export-control language briefly, or None stated","jd":"condensed posting, max 300 words, plain text with labelled lines DOES:, REQUIRES:, NICE:, KEYWORDS:, PAY:, ARRANGEMENT:","track":"the closest one of: ${names.join(" | ")}","cv":"same as track","fit":"A or B or C","why":"one plain sentence on why it fits them, no em dashes","flags":"short warnings separated by '; ' (work setup or job type they didn't pick, level far off what they want${years ? ", " + c.maxYears + "+ years required" : ""}, citizenship or clearance required, not in one of their cities), or empty"}`;
+{"company":"company name","role":"exact job title","city":"the one of their cities (${cfg().cities.join(", ")}) this job is in, or the job's own city if none","arrangement":"e.g. Hybrid, Austin","salary":"as shown, or empty","auth":"quote any citizenship, sponsorship, visa or export-control language briefly, or None stated","jd":"condensed posting, max 300 words, plain text with labelled lines DOES:, REQUIRES:, NICE:, KEYWORDS:, PAY:, ARRANGEMENT:","track":"the closest one of: ${names.join(" | ")}","cv":"same as track","fit":"A or B or C","why":"one plain sentence on why it fits them, no em dashes","flags":"short warnings separated by '; ' (work setup or job type they didn't pick, level far off what they want${years ? ", " + c.maxYears + "+ years required" : ""}, citizenship or clearance required, not in one of their cities), or empty"${langKeys}}`;
   }
   // Match the model's answer to one of the person's role type names (case-insensitive); keep its own words if nothing matches.
   const pickType = (v) => { const c = cfg(), names = c.roleTypes.filter((r) => c.roles.includes(r[0])).map((r) => r[1]), t = String(v || "").trim(); return names.find((n) => n.toLowerCase() === t.toLowerCase()) || t || names[0] || ""; };
@@ -1940,7 +2089,8 @@ Reply with ONLY one JSON object:
       const pick = (v, ok, d) => (ok.includes(v) ? v : d);
       await write(id, { company: clean(r.company), role: clean(r.role), city: clean(r.city) || cfg().cities[0], arrangement: clean(r.arrangement), salary: clean(r.salary), auth: clean(r.auth) || "None stated",
         jd: cleanMulti(r.jd), track: pickType(r.track), cv: pickType(r.cv || r.track), fit: pick(r.fit, ["A", "B", "C"], "B"),
-        why: clean(r.why), flags: clean(r.flags), pending: false, pendingNote: "" }, "Details filled in");
+        why: clean(r.why), flags: clean(r.flags), pending: false, pendingNote: "",
+        ...(multiLang() ? { lang: langCodes().includes(r.lang) ? r.lang : postLang(r.jd || text), cvLangs: (Array.isArray(r.cvLangs) ? langCodes().filter((x) => r.cvLangs.includes(x)) : []).slice(0, 4) } : {}) }, "Details filled in");
       return true;
     } catch (e) { toast(!url ? "Couldn't read the details. The description is saved on the job." : e && e.code === "not_granted" ? "Claude access was declined, so details will fill in within 2 hours." : "Couldn't read the description. The details will fill in within 2 hours."); return false; }
   }
@@ -2015,8 +2165,9 @@ Reply with ONLY one JSON object:
   // is closed by stretching the spacing a little (and the name, unless a size was chosen on purpose), so the page ends
   // at the bottom margin. The .docx and .pdf get the same stretched layout.
   let mPage = null;
-  function measurePage() {
+  function measurePage(paper) {
     if (!mPage) { mPage = document.createElement("div"); mPage.className = "page"; mPage.setAttribute("aria-hidden", "true"); mPage.style.cssText = "left:-10000px;visibility:hidden;pointer-events:none;transform:none"; document.body.appendChild(mPage); }
+    setPaper(mPage, paper || "letter");
     return mPage;
   }
   // Layout stretch s in [0,1]: line height +6%, section gap 7->14pt, entry gap 3->7pt, bullet gap 1->2.5pt, name +3pt (max 18, unless set).
@@ -2052,15 +2203,15 @@ Reply with ONLY one JSON object:
     return out;
   }
   // Measure a draft on the hidden page at the normal (unstretched) layout.
-  function measureDraft(t) {
-    const p = measurePage(); const { cv } = compose(t);
+  function measureDraft(t, cx) {
+    const p = measurePage(cx.paper); const { cv } = compose(t, cx.master);
     p.innerHTML = paperHtml(cv, new Set()).replace(/<div class="pbreak"[\s\S]*$/, "");
-    const limit = 792 * PT, lh = 11.5 * PT, px = contentPx(p);
+    const limit = pageH(p) * PT, lh = 11.5 * PT, px = contentPx(p);
     return { over: px > limit + 1, overLines: Math.max(0, (px - limit) / lh), freeLines: (limit - px) / lh, orphans: findOrphans(p) };
   }
   // Lines each text takes as a bullet, measured on the hidden page.
-  function lineCosts(texts) {
-    const p = measurePage(); p.innerHTML = `<ul>${texts.map((t) => `<li>${inlineHtml(t)}</li>`).join("")}</ul>`;
+  function lineCosts(texts, paper) {
+    const p = measurePage(paper); p.innerHTML = `<ul>${texts.map((t) => `<li>${inlineHtml(t)}</li>`).join("")}</ul>`;
     const lh = 11.5 * PT; return [...p.querySelectorAll("li")].map((li) => Math.max(1, Math.round(li.offsetHeight / lh)));
   }
   const needsFit = (m) => !!m && (m.over || m.orphans.length > 0 || m.freeLines >= 2.5);
@@ -2069,7 +2220,7 @@ Reply with ONLY one JSON object:
   // Measure a rendered page, mark spills, and stretch it to the bottom margin. Used by the tailored CV and the master CV preview.
   function fitLayout(page) {
     const baseName = Number(page.dataset.name || 15), lockName = page.dataset.lockname === "1";
-    const limit = 792 * PT, lh = 11.5 * PT;
+    const limit = pageH(page) * PT, lh = 11.5 * PT;
     setStretch(page, 0, baseName, true);
     const basePx = contentPx(page);
     const over = basePx > limit + 1, freeLines = (limit - basePx) / lh;
@@ -2115,16 +2266,16 @@ Reply with ONLY one JSON object:
   const queueMaster = (ms) => { clearTimeout(mTimer); mTimer = setTimeout(paintMasterPreview, ms); };
   function scaleMaster() {
     const page = $("m-paper"), wrap = $("m-pwrap"); if (!page || !wrap || !wrap.clientWidth) return;
-    const sc = Math.min(1, wrap.clientWidth / (612 * PT));
+    const sc = Math.min(1, wrap.clientWidth / (pageW(page) * PT));
     page.style.transform = `scale(${sc})`;
-    wrap.style.height = Math.ceil(Math.max(792 * PT, page.offsetHeight) * sc) + "px";
+    wrap.style.height = Math.ceil(Math.max(pageH(page) * PT, page.offsetHeight) * sc) + "px";
   }
   function paintMasterPreview() {
-    const card = $("mprev"), src = cvDraft || master;
+    const card = $("mprev"), src = cvDraft || masters[edLang()];
     card.hidden = !src;
     if (!src || $("cvedit").hidden) return;
     const cv = coreOf(src), page = $("m-paper");
-    page.style.transform = "none";
+    page.style.transform = "none"; setPaper(page, paperOf(edLang())); page.lang = edLang();
     page.innerHTML = paperHtml(cv, new Set()).replace(' id="t-pbreak"', "");
     page.dataset.name = String(cv.nameSize || 15); page.dataset.lockname = cv.nameSize ? "1" : "";
     const { m, applied } = fitLayout(page);
@@ -2141,13 +2292,13 @@ Reply with ONLY one JSON object:
     scaleMaster();
   }
   async function doMasterFile(kind) {
-    const src = cvDraft || master; if (!src) return;
+    const src = cvDraft || masters[edLang()]; if (!src) return;
     const btn = $(kind === "pdf" ? "m-pdf" : "m-dl"), st = $("m-status");
     if (!downloads) { st.className = "status err"; st.textContent = "Downloads aren't available here."; return; }
     btn.disabled = true; st.className = "status"; st.textContent = kind === "pdf" ? "Building PDF…" : "Building file…";
     try {
-      const cv = coreOf(src); cv.layout = mLayout; cv.nameSize = mName || cv.nameSize;
-      const base = `${niceName(src.name)} CV`.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "-").trim();
+      const cv = coreOf(src); cv.layout = mLayout; cv.nameSize = mName || cv.nameSize; cv.paper = paperOf(edLang());
+      const base = `${niceName(src.name)} CV${multiLang() ? " " + edLang().toUpperCase() : ""}`.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "-").trim();
       let blob, fonts = true;
       if (kind === "pdf") { const [JsPDF, f] = await Promise.all([loadJsPdf(), loadPdfFonts().catch(() => null)]); fonts = !!f; blob = buildCvPdf(JsPDF, cv, f).output("blob"); }
       else { const D = await loadDocx(); blob = await D.Packer.toBlob(buildCvDoc(D, cv)); }
@@ -2160,27 +2311,27 @@ Reply with ONLY one JSON object:
   }
   function paintFix() {
     const j = job(), fix = $("t-fix"), m = lastMeasure;
-    fix.hidden = !(j && j.tailor && sample && m) || !needsFit(m);
+    fix.hidden = !(j && tailorOf(j, vl()) && sample && m) || !needsFit(m);
     if (m) fix.textContent = m.over ? "Trim to one page" : m.orphans.length ? "Fix the spills" : "Fill the space";
     fix.disabled = busy || tailBusy();
   }
-  function setLocalTailor(id, t) { const x = jobs.find((y) => y.id === id); if (x) x.tailor = { t, at: new Date().toISOString() }; }
-  function fitPrompt(j, t, m) {
-    const { cv } = compose(t);
+  function setLocalTailor(id, t, lang) { const x = jobs.find((y) => y.id === id); if (x) x[tKey(lang)] = { t, at: new Date().toISOString() }; }
+  function fitPrompt(j, t, m, cx) {
+    const { cv } = compose(t, cx.master);
     const inDraft = new Set(cv.sections.flatMap((s) => s.entries.flatMap((e) => e.bullets.map((b) => b.id))));
     const draftBullets = cv.sections.flatMap((s) => s.entries.flatMap((e) => e.bullets.map((b) => ({ id: b.id, entry: e.id, text: b.text }))));
     const shown = new Set(cv.sections.flatMap((s) => s.entries.map((e) => e.id)));
-    const cands = master.sections.flatMap((s) => s.entries.flatMap((e) => e.bullets.filter((b) => !inDraft.has(b.id)).map((b) => ({ id: b.id, entry: e.id, newEntry: !shown.has(e.id), tier: b.tier === "deep" || e.tier === "deep" ? "deep" : b.optional || e.optional ? "optional" : "core", alt_of: b.alt_of || "", text: b.text }))));
-    const dc = lineCosts(draftBullets.map((b) => b.text)), cc = lineCosts(cands.map((b) => b.text));
+    const cands = cx.master.sections.flatMap((s) => s.entries.flatMap((e) => e.bullets.filter((b) => !inDraft.has(b.id)).map((b) => ({ id: b.id, entry: e.id, newEntry: !shown.has(e.id), tier: b.tier === "deep" || e.tier === "deep" ? "deep" : b.optional || e.optional ? "optional" : "core", alt_of: b.alt_of || "", text: b.text }))));
+    const dc = lineCosts(draftBullets.map((b) => b.text), cx.paper), cc = lineCosts(cands.map((b) => b.text), cx.paper);
     const space = m.over ? `The page runs about ${Math.max(1, Math.round(m.overLines))} line(s) onto a second page.` : `There are about ${Math.max(0, Math.floor(m.freeLines))} empty lines at the bottom of the page.`;
     const orph = m.orphans.length ? m.orphans.map((o) => `- ${o.id}: "${o.text}" leaves only a word or two on its last line. Shorten it by at least ${o.cut} characters so it ends one line earlier (or, only if it adds real value, add real detail from the master so the last line is full).`).join("\n") : "- none";
     return `You are adjusting ${who()}'s tailored CV so it fills exactly one page and no line ends with a stray word or two. The measurements below come from the real rendered page: trust them, don't guess.
 
-${rules}
+${cx.rules}
 
-${prefsBlock()}
+${prefsBlock()}${langLine(cx)}
 MASTER CV (JSON, includes the optional and deep bank; the only source of facts):
-${JSON.stringify(master)}
+${JSON.stringify(cx.master)}
 
 JOB:
 ${jobBlock(j)}
@@ -2197,37 +2348,37 @@ ${draftBullets.map((b, i) => `- ${b.id} (${b.entry}): ${dc[i]} line(s)`).join("\
 Bullets you could add (not on the page), with the lines each would use:
 ${cands.map((b, i) => `- ${b.id} (${b.entry}${b.newEntry ? ", entry not shown yet: adding it also adds its heading lines" : ""}, ${b.tier}${b.alt_of ? ", alternative to " + b.alt_of : ""}): ${cc[i]} line(s): ${b.text}`).join("\n")}
 
-TASK: return ONE complete tailoring object in the same shape as the current draft (${SHAPE}, with a "bullets" key for every entry id: ${entryIds()}) that:
+TASK: return ONE complete tailoring object in the same shape as the current draft (${SHAPE}, with a "bullets" key for every entry id: ${entryIds(cx.master)}) that:
 1. fixes every spilling line listed above;
 2. leaves at most one empty line at the bottom without going onto a second page. To fill space, add the most relevant bullets from the list (core and optional first; a deep-tier bullet only if it is clearly strong evidence for this job, never just to fill space), or let a useful bullet run one line longer with real detail from the master. To fix overflow, cut or shorten the least relevant lines;
 3. keeps everything else exactly as it is, including their standing preferences. Never invent facts.
 Add one short note to "changes" saying what you changed to fit the page. Reply with ONLY the JSON object.`;
   }
   // Up to `passes` rounds with Claude. A result is kept only if the measured page is better than before.
-  async function autoFit(j, t, signal, say = () => {}, passes = 2) {
-    let m = measureDraft(t);
+  async function autoFit(j, t, signal, say = () => {}, passes = 2, cx = cxOf(mainLang())) {
+    let m = measureDraft(t, cx);
     for (let i = 0; i < passes && needsFit(m); i++) {
       say(m.over ? "Trimming it back to one page…" : m.orphans.length ? "Fixing lines that spill a word…" : `Filling ${Math.floor(m.freeLines)} empty lines at the bottom…`);
       let r;
-      try { r = await sample.json(fitPrompt(j, t, m), { signal, modelTier: "default", cache: false }); }
+      try { r = await sample.json(fitPrompt(j, t, m, cx), { signal, modelTier: "default", cache: false }); }
       catch (e) { if (signal && signal.aborted) throw e; break; }
       if (!validT(r)) break;
-      const m2 = measureDraft(r);
+      const m2 = measureDraft(r, cx);
       if (badness(m2) < badness(m)) { t = r; m = m2; } else break;
     }
     return t;
   }
   // Fit the saved draft of one job (after a chat edit, or from the Fix button).
-  async function refit(id, passes, manual) {
-    const j = jobs.find((x) => x.id === id);
-    if (!j || !j.tailor || !j.tailor.t || !sample || busy || tailoring.has(id)) return;
-    const t0 = j.tailor.t;
-    if (!needsFit(measureDraft(t0))) { if (manual) toast("The page already fits"); return; }
+  async function refit(id, passes, manual, lang = vl()) {
+    const j = jobs.find((x) => x.id === id), cx = cxOf(lang);
+    if (!j || !tailorOf(j, lang) || !cx.master || !sample || busy || tailoring.has(id)) return;
+    const t0 = tailorOf(j, lang);
+    if (!needsFit(measureDraft(t0, cx))) { if (manual) toast("The page already fits"); return; }
     ctl = new AbortController();
     setBusy(true, "Fitting it to the page…");
     try {
-      const t = await autoFit({ ...j, jd: (cur === id && $("t-jd").value.trim()) || j.jd }, t0, ctl.signal, (msg) => { if (cur === id) $("t-status").textContent = msg; }, passes);
-      if (t !== t0) { setLocalTailor(id, t); await write(id, { tailor: { t, at: new Date().toISOString() } }); }
+      const t = await autoFit({ ...j, jd: (cur === id && $("t-jd").value.trim()) || j.jd }, t0, ctl.signal, (msg) => { if (cur === id) $("t-status").textContent = msg; }, passes, cx);
+      if (t !== t0) { setLocalTailor(id, t, lang); await write(id, { [tKey(lang)]: { t, at: new Date().toISOString() } }); }
       setBusy(false); if (cur === id) paintDrawer();
       if (t === t0 && manual && cur === id) { $("t-status").className = "status"; $("t-status").textContent = "Couldn't improve the fit this time. Try again, or tell the chat what to cut or add."; }
     } catch (e) {
@@ -2265,7 +2416,8 @@ Add one short note to "changes" saying what you changed to fit the page. Reply w
     await saveJd();
     const jj = { ...j, jd: $("t-jd").value.trim() };
     if (!jj.jd) { showPane("jd"); $("t-jd").focus(); $("t-status").textContent = "Paste the job description first."; return; }
-    if (!master) { $("t-status").className = "status err"; $("t-status").textContent = "Add your master CV first (profile menu, Master CV and voice)."; return; }
+    const plan = tailorPlan(j), noMaster = plan.filter((c) => !masters[c]);
+    if (noMaster.length) { $("t-status").className = "status err"; $("t-status").textContent = multiLang() ? `Add your ${langName(noMaster[0])} master CV first: ask Claude in a chat to build it with you.` : "Add your master CV first (profile menu, Master CV and voice)."; return; }
     const id = j.id, run = { ctl: new AbortController(), label: "", queued: true };
     // wait for the tailor ahead in line (Stop works while waiting too)
     const prev = tailorChain; let release; const mine = new Promise((r) => (release = r));
@@ -2277,13 +2429,16 @@ Add one short note to "changes" saying what you changed to fit the page. Reply w
         await Promise.race([prev, new Promise((_, rej) => run.ctl.signal.addEventListener("abort", () => rej({ code: "cancelled" })))]);
       }
       run.queued = false; render();
-      tStatus(id, "Thinking… this takes 1 to 3 minutes. You can close this and keep going.");
+      // One CV per language in the plan (both, for a job that asks for a CV in each), one after the other.
+      for (let k = 0; k < plan.length; k++) {
+      const lang = plan[k], cx = cxOf(lang), of = plan.length > 1 ? ` ${langName(lang)} CV (${k + 1} of ${plan.length}).` : "";
+      tStatus(id, "Thinking… this takes 1 to 3 minutes." + of + " You can close this and keep going.");
       // A failed try is retried by itself (up to 3 tries) and keeps its place at the front of the line.
       // Not retried: Stop, Claude access declined, or a description too long to send.
       let t;
       for (let tries = 1; ; tries++) {
         try {
-          t = await sample.json(tailorPrompt(jj), { signal: run.ctl.signal, modelTier: "complex", cache: false, onText: () => tStatus(id, "Writing your draft…") });
+          t = await sample.json(tailorPrompt(jj, cx), { signal: run.ctl.signal, modelTier: "complex", cache: false, onText: () => tStatus(id, "Writing your draft…") });
           if (!validT(t)) throw { code: "invalid_json" };
           break;
         } catch (e) {
@@ -2295,10 +2450,13 @@ Add one short note to "changes" saying what you changed to fit the page. Reply w
         }
       }
       tStatus(id, "Checking the page: length and lines that spill a word…");
-      t = await autoFit(jj, t, run.ctl.signal, (msg) => tStatus(id, msg), 2);
-      tailoring.delete(id);
-      await write(id, { tailor: { t, at: new Date().toISOString() } }, cur === id ? "Draft ready" : `CV ready: ${jj.company}`);
-      if (cur === id) { $("t-status").textContent = ""; paintBusy(); paintDrawer(); }
+      t = await autoFit(jj, t, run.ctl.signal, (msg) => tStatus(id, msg), 2, cx);
+      const last = k === plan.length - 1;
+      if (last) tailoring.delete(id);
+      await write(id, { [tKey(lang)]: { t, at: new Date().toISOString() } }, !last ? "" : cur === id ? (plan.length > 1 ? "Both drafts ready" : "Draft ready") : `CV ready: ${jj.company}`);
+      setLocalTailor(id, t, lang);
+      if (cur === id) { if (last) $("t-status").textContent = ""; paintBusy(); paintDrawer(); }
+      }
       render();
     } catch (e) {
       tailoring.delete(id);
@@ -2311,9 +2469,10 @@ Add one short note to "changes" saying what you changed to fit the page. Reply w
   async function doSend(preset) {
     const j = job(); const text = (typeof preset === "string" ? preset : $("t-msg").value).trim();
     if (!j || !text || busy || tailoring.has(j.id) || !sample) return;
-    const t = j.tailor && j.tailor.t;
-    const hist = (Array.isArray(j.chat) ? j.chat : []).slice(-16);
-    const turns = [{ role: "user", content: chatContext({ ...j, jd: $("t-jd").value.trim() || j.jd }, t) }, { role: "assistant", content: '{"reply":"Ready. What would you like to change or ask?","update":null}' }];
+    const lang = vl(), cx = cxOf(lang); if (!cx.master) return;
+    const t = tailorOf(j, lang);
+    const hist = (Array.isArray(j[cKey(lang)]) ? j[cKey(lang)] : []).slice(-16);
+    const turns = [{ role: "user", content: chatContext({ ...j, jd: $("t-jd").value.trim() || j.jd }, t, cx) }, { role: "assistant", content: '{"reply":"Ready. What would you like to change or ask?","update":null}' }];
     for (const m of hist) turns.push({ role: m.role === "user" ? "user" : "assistant", content: m.role === "user" ? m.content : JSON.stringify({ reply: m.content, update: null }) });
     turns.push({ role: "user", content: text });
     $("t-msgs").insertAdjacentHTML("beforeend", `<div class="msg user">${esc(text)}</div>`);
@@ -2329,13 +2488,13 @@ Add one short note to "changes" saying what you changed to fit the page. Reply w
       const failed = !upd && !!(r && r.update);
       const saved = r && r.remember ? await addPref(r.remember) : null;
       const chat = [...hist, { role: "user", content: text }, { role: "assistant", content: reply, updated: !!upd, failed, ...(saved ? { remembered: saved.text, rememberedId: saved.id } : {}) }].slice(-20);
-      const patch = { chat };
-      if (upd) patch.tailor = { t: upd, at: new Date().toISOString() };
+      const patch = { [cKey(lang)]: chat };
+      if (upd) patch[tKey(lang)] = { t: upd, at: new Date().toISOString() };
       await write(j.id, patch);
-      if (upd) setLocalTailor(j.id, upd);
+      if (upd) setLocalTailor(j.id, upd, lang);
       setBusy(false); paintDrawer();
       // an edit can leave a gap, push onto page 2 or leave a word on its own line: fix that straight away
-      if (upd) await refit(j.id, 1);
+      if (upd) await refit(j.id, 1, false, lang);
       if (failed) { $("t-status").className = "status err"; $("t-status").textContent = "Edit failed. Your draft was not changed. Send the request again."; }
     } catch (e) {
       setBusy(false); $("t-status").className = "status err"; $("t-status").textContent = sampleErr(e);
@@ -2374,7 +2533,7 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
   async function doAnswers() {
     const j = job(); const text = $("a-q").value.trim();
     if (!j || !text || busy || !sample) return;
-    const { cv } = compose(j.tailor && j.tailor.t);
+    const al = masters[vl()] ? vl() : mainLang(), { cv } = compose(tailorOf(j, al), masters[al]);
     const hist = (Array.isArray(j.answers) ? j.answers : []).slice(-12);
     const turns = [{ role: "user", content: answersContext({ ...j, jd: $("t-jd").value.trim() || j.jd }, cvAsText(cv)) }, { role: "assistant", content: '{"items":[],"note":"Ready for the questions."}' }];
     for (const m of hist) turns.push(m.role === "user" ? { role: "user", content: m.content } : { role: "assistant", content: JSON.stringify({ items: m.items || [], note: m.note || "" }) });
@@ -2420,13 +2579,13 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     let s;
     if (zoom.mode === "custom") {
       s = clampZ(zoom.z);
-      wrap.style.maxWidth = "none"; wrap.style.width = Math.ceil(612 * PT * s) + "px";
+      wrap.style.maxWidth = "none"; wrap.style.width = Math.ceil(pageW(page) * PT * s) + "px";
     } else {
       wrap.style.maxWidth = ""; wrap.style.width = "";
-      s = Math.min(1.25, wrap.clientWidth / (612 * PT));
+      s = Math.min(1.25, wrap.clientWidth / (pageW(page) * PT));
       if (zoom.mode === "page" && matchMedia("(min-width: 900px)").matches) {
-        s = Math.min(s, (sc.clientHeight - 4) / (792 * PT));
-        wrap.style.maxWidth = "none"; wrap.style.width = Math.ceil(612 * PT * s) + "px";
+        s = Math.min(s, (sc.clientHeight - 4) / (pageH(page) * PT));
+        wrap.style.maxWidth = "none"; wrap.style.width = Math.ceil(pageW(page) * PT * s) + "px";
       }
       s = Math.min(1.25, Math.max(0.2, s));
     }
@@ -2533,16 +2692,17 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     if (r.length > 40) r = r.slice(0, 40).replace(/\s+\S*$/, "");
     return r.replace(/[\s\-–,:|]+$/, "");
   }
-  const fileBase = (j) => `${who()} CV ${j.company || ""} ${shortRole(j.role)}`.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 180);
+  const fileBase = (j, lang) => `${who()} CV ${j.company || ""} ${shortRole(j.role)}${multiLang() && lang ? " " + lang.toUpperCase() : ""}`.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "-").replace(/\s+/g, " ").trim().slice(0, 180);
   async function doPdf() {
     const j = job(); if (!j || !downloads) return;
     $("t-pdf").disabled = true; $("t-status").className = "status"; $("t-status").textContent = "Building PDF…";
     try {
       const [JsPDF, fonts] = await Promise.all([loadJsPdf(), loadPdfFonts().catch(() => null)]);
-      const { cv } = compose(j.tailor && j.tailor.t);
-      cv.layout = curLayout; cv.nameSize = curNameSize || cv.nameSize;
+      const lang = vl(); if (!masters[lang]) return;
+      const { cv } = compose(tailorOf(j, lang), masters[lang]);
+      cv.layout = curLayout; cv.nameSize = curNameSize || cv.nameSize; cv.paper = paperOf(lang);
       const blob = buildCvPdf(JsPDF, cv, fonts).output("blob");
-      await downloads.save({ filename: fileBase(j) + ".pdf", data: blob });
+      await downloads.save({ filename: fileBase(j, lang) + ".pdf", data: blob });
       $("t-status").textContent = fonts ? "" : "Saved with a fallback font. Line breaks may differ slightly.";
     } catch (e) {
       $("t-status").className = "status err";
@@ -2559,10 +2719,11 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     $("t-dl").disabled = true; $("t-status").className = "status"; $("t-status").textContent = "Building file…";
     try {
       const D = await loadDocx();
-      const { cv } = compose(j.tailor && j.tailor.t);
-      cv.layout = curLayout; cv.nameSize = curNameSize || cv.nameSize;
+      const lang = vl(); if (!masters[lang]) return;
+      const { cv } = compose(tailorOf(j, lang), masters[lang]);
+      cv.layout = curLayout; cv.nameSize = curNameSize || cv.nameSize; cv.paper = paperOf(lang);
       const blob = await D.Packer.toBlob(buildCvDoc(D, cv));
-      await downloads.save({ filename: fileBase(j) + ".docx", data: blob });
+      await downloads.save({ filename: fileBase(j, lang) + ".docx", data: blob });
       $("t-status").textContent = "";
     } catch (e) {
       $("t-status").className = "status err";
@@ -2570,9 +2731,9 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     } finally { $("t-dl").disabled = false; }
   }
   async function doCopy() {
-    const j = job(); if (!j || !master) return;
-    const t = j.tailor && j.tailor.t; const { cv } = compose(t);
-    const text = `Help me refine my CV for this job. Only use facts from my master CV; follow these rules.\n\n${rules}\n\nJOB\n${jobBlock({ ...j, jd: $("t-jd").value.trim() || j.jd })}\n\nMASTER CV\n${cvAsText(compose(null).cv)}\n\n${t ? "CURRENT TAILORED DRAFT\n" + cvAsText(cv) + (t.gaps && t.gaps.length ? "\nGAPS FLAGGED\n- " + t.gaps.join("\n- ") : "") : ""}`;
+    const j = job(), cx = cxOf(vl()); if (!j || !cx.master) return;
+    const t = tailorOf(j, cx.lang); const { cv } = compose(t, cx.master);
+    const text = `Help me refine my CV for this job. Only use facts from my master CV; follow these rules.\n\n${cx.rules}\n\n${langLine(cx)}JOB\n${jobBlock({ ...j, jd: $("t-jd").value.trim() || j.jd })}\n\nMASTER CV\n${cvAsText(compose(null, cx.master).cv)}\n\n${t ? "CURRENT TAILORED DRAFT\n" + cvAsText(cv) + (t.gaps && t.gaps.length ? "\nGAPS FLAGGED\n- " + t.gaps.join("\n- ") : "") : ""}`;
     try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into a new Claude chat."); $("t-copybox").hidden = true; }
     catch (_) { const b = $("t-copybox"); b.value = text; b.hidden = false; b.focus(); b.select(); $("t-status").textContent = "Select all and copy this text."; }
   }
@@ -2602,6 +2763,20 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     }
     const rb = e.target.closest("button[data-rmbul]");
     if (rb) { const [si, ei, bi] = rb.dataset.rmbul.split(".").map(Number); cvDraft.sections[si].entries[ei].bullets.splice(bi, 1); cvChanged(); renderCvForm(); return; }
+    const lb = e.target.closest("button[data-lang]");
+    if (lb && cur) { pickLang(lb.dataset.lang); return; }
+    const vb = e.target.closest("button[data-view]");
+    if (vb && cur) { pickView(vb.dataset.view); return; }
+    const eb = e.target.closest("button[data-edlang]");
+    if (eb) {
+      if (cvDirty && eb.dataset.edlang !== edLang()) { $("cv-status").className = "status err"; $("cv-status").textContent = "Save your changes first, then switch language."; return; }
+      edLangPick = eb.dataset.edlang; cvDirty = false; paintCv(true); queueMaster(0); return;
+    }
+    const pb = e.target.closest("button[data-paper]");
+    if (pb && draftLangs) {
+      const [i, k] = pb.dataset.paper.split(":"); draftLangs[Number(i)].paper = k; paintLangRows();
+      setDirty = true; $("set-status").className = "status"; $("set-status").textContent = "Not saved yet."; return;
+    }
     const rr = e.target.closest("button[data-rmrole]");
     if (rr) { readRoleChecks(); draftRoles.splice(Number(rr.dataset.rmrole), 1); setDirty = true; paintRoles(); $("set-status").className = "status"; $("set-status").textContent = "Not saved yet."; return; }
     const rm = e.target.closest("button[data-rmcity]");
@@ -2725,13 +2900,9 @@ Reply with ONLY one JSON object: {"items":[{"q":"the question, shortened to one 
     try { const u = await claude.use("user"); if (u && u.can && (await u.can("data.write")) === false) writable = false; } catch (_) {}
     db.doc("profile/prefs").onSnapshot((d) => { const x = d.exists ? d.data() : null; prefs = x && Array.isArray(x.items) ? x.items : []; if (tab === "prefs") paintPrefs(); }, () => {});
     db.doc("profile/voice").onSnapshot((d) => { voice = d.exists ? d.data() : null; if (tab === "cv") paintCv(); }, () => {});
-    db.doc("profile/search").onSnapshot((d) => { search = d.exists ? d.data() : null; paintScope(); paintMe(); paintCityFilter(); if (tab === "settings") paintSettings(); render(); }, () => {});
-    db.doc("profile/cv").onSnapshot((d) => {
-      const data = d.exists ? d.data() : null;
-      master = data && data.cv ? data.cv : null; rules = (data && data.rules) || STARTER_RULES;
-      paintMe(); if (tab === "cv") paintCv();
-      if (cur) { paperKey = ""; paintDrawer(); }
-    }, () => {});
+    db.doc("profile/search").onSnapshot((d) => { search = d.exists ? d.data() : null; syncMasters(); onMasters(); paintScope(); paintCityFilter(); if (tab === "settings") paintSettings(); render(); }, () => {});
+    // master CVs: profile/cv, plus profile/cv-<code> for each extra CV language (subscribed as languages appear)
+    syncMasters();
     db.collection("jobs").onSnapshot((snap) => {
       jobs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       if (cur) {

@@ -3,6 +3,8 @@
 //   problems: things to fix before saving (the check says NEEDS WORK)
 //   lookAt:   things worth a look or a question to the person (don't fail the check)
 // Plain JS, no browser needed.
+// reviewCv(cv, today, lang): lang is the CV's language code. "en" (default) follows the US rules ("Jan 2025 – Present").
+// "fr" follows French ones ("janv. 2025 – aujourd'hui"). Any other language reads dates loosely and skips the English-only checks.
 
 const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
 const SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -12,15 +14,44 @@ const CLICHES = ["hard-working", "hardworking", "hard working", "passionate", "r
 const WEAK_OPENERS = /^(responsible for|duties (included|include)|worked on|helped (with|to)?|tasked with|in charge of|assisted (with|in)?)\b/i;
 const SELF = /^(i|my|me)\b/i;
 
+// French: months are lower case, abbreviated with a dot except the short ones (mars, mai, juin, août).
+const FR_MONTHS = { janv: 0, janvier: 0, févr: 1, fevr: 1, février: 1, fevrier: 1, mars: 2, avr: 3, avril: 3, mai: 4, juin: 5, juil: 6, juillet: 6, août: 7, aout: 7,
+  sept: 8, septembre: 8, oct: 9, octobre: 9, nov: 10, novembre: 10, déc: 11, dec: 11, décembre: 11, decembre: 11 };
+const FR_SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const FR_PRESENT = /^(aujourd['’]hui|présent|present|en cours|actuel|actuellement|ce jour)$/i;
+// Other languages: month names read loosely (no house style enforced).
+const LOOSE_MONTHS = { ...FR_MONTHS, ene: 0, enero: 0, gen: 0, gennaio: 0, januar: 0, jänner: 0, feb: 1, febr: 1, februar: 1, febrero: 1, febbraio: 1, mär: 2, märz: 2, marzo: 2, mar: 2,
+  abr: 3, abril: 3, apr: 3, aprile: 3, may: 4, mayo: 4, mag: 4, maggio: 4, jun: 5, juni: 5, junio: 5, giu: 5, giugno: 5, jul: 6, juli: 6, julio: 6, lug: 6, luglio: 6,
+  ago: 7, agosto: 7, aug: 7, sep: 8, septiembre: 8, set: 8, settembre: 8, okt: 9, oktober: 9, octubre: 9, ott: 9, ottobre: 9, noviembre: 10, novembre: 10, dez: 11, dezember: 11, dic: 11, diciembre: 11, dicembre: 11 };
+const LOOSE_PRESENT = /^(present|current|now|today|ongoing|aujourd['’]hui|présent|en cours|actuel|heute|aktuell|laufend|actualidad|presente|hoy|oggi|attuale|in corso|heden|nu|atual)$/i;
+let LANG = "en"; // set by reviewCv for the CV being checked
+const PRESENT_WORD = () => (LANG === "fr" ? "aujourd'hui" : LANG === "en" ? "Present" : "Present (in the CV's language)");
+const DATE_EXAMPLES = () => (LANG === "fr" ? `"janv. 2025 – aujourd'hui", "juin 2023 – août 2024" or "mai 2026"` : `"Jan 2025 – Present", "Jun 2023 – Aug 2024" or "May 2026"`);
+
 const label = (e) => e.org || e.role || e.id;
 const fmt = (m) => (m == null || !isFinite(m) ? "?" : SHORT[((m % 12) + 12) % 12] + " " + Math.floor(m / 12));
 
 // One side of a date range -> {m (months since year 0), present, yearOnly, bad}
 function parsePoint(raw, isEnd) {
-  let s = String(raw || "").trim().replace(/\.$/, "");
+  let s = String(raw || "").trim().replace(LANG === "en" ? /\.$/ : /$^/, "");
   const out = { raw: s, m: null, present: false, yearOnly: false, expected: false, bad: [] };
   if (!s) return out;
-  if (/^expected\s+/i.test(s)) { out.expected = true; s = s.replace(/^expected\s+/i, ""); }
+  if (/^(expected|prévue?|attendu|voraussichtlich|previsto|prevista)\s+(en\s+)?/i.test(s)) { out.expected = true; s = s.replace(/^(expected|prévue?|attendu|voraussichtlich|previsto|prevista)\s+(en\s+)?/i, ""); }
+  if (LANG !== "en") {
+    const fr = LANG === "fr";
+    if ((fr ? FR_PRESENT : LOOSE_PRESENT).test(s)) { out.present = true; if (fr && s !== "aujourd'hui") out.bad.push(`write "aujourd'hui" (not "${s}")`); return out; }
+    let mt;
+    if ((mt = s.match(/^(\p{L}+)\.?\s+(\d{4})$/u))) {
+      const w = mt[1].toLowerCase(), y = +mt[2], mo = (fr ? FR_MONTHS : LOOSE_MONTHS)[w];
+      if (mo == null) return out;
+      out.m = y * 12 + mo;
+      if (fr && s !== FR_SHORT[mo] + " " + y) out.bad.push(`write "${FR_SHORT[mo]} ${y}" (not "${raw}")`);
+      return out;
+    }
+    if ((mt = s.match(/^(\d{1,2})[\/.](\d{4})$/))) { const mo = +mt[1] - 1, y = +mt[2]; out.m = y * 12 + mo; if (fr) out.bad.push(`write "${FR_SHORT[mo]} ${y}" (not "${raw}")`); return out; }
+    if ((mt = s.match(/^(\d{4})$/))) { out.m = +mt[1] * 12 + (isEnd ? 11 : 0); out.yearOnly = true; }
+    return out;
+  }
   if (PRESENT.test(s)) { out.present = true; if (s !== "Present") out.bad.push(`write "Present" (not "${s}")`); return out; }
   let mt;
   if ((mt = s.match(/^([A-Za-z]+)\.?\s+(\d{4})$/))) {
@@ -47,7 +78,7 @@ function parseRange(raw) {
   if (parts.length > 2) return r;
   if (parts.length === 2) {
     const dash = s.match(/\s*(–|—|-|\bto\b|\buntil\b)\s*/i);
-    if (dash && dash[0] !== " – ") r.bad.push(`use " – " between the dates (an en dash with a space each side), like "Jun 2023 – Aug 2024"`);
+    if (dash && dash[0] !== " – ") r.bad.push(`use " – " between the dates (an en dash with a space each side), like ${LANG === "fr" ? `"juin 2023 – août 2024"` : `"Jun 2023 – Aug 2024"`}`);
   }
   r.start = parsePoint(parts[0], parts.length === 1);
   r.end = parts.length === 2 ? parsePoint(parts[1], true) : parsePoint(parts[0], true);
@@ -57,11 +88,16 @@ function parseRange(raw) {
   return r;
 }
 
-const looksLikeDate = (s) => /\b(19|20)\d{2}\b|present/i.test(String(s || ""));
+const looksLikeDate = (s) => /\b(19|20)\d{2}\b|present|aujourd/i.test(String(s || ""));
 // Education keeps its dates in `place` (it has no role line). Everything else uses `dates`.
 const dateText = (e) => e.dates || (!e.role && looksLikeDate(e.place) ? e.place : "");
 
-function reviewCv(cv, today = new Date()) {
+const FR_CLICHES = ["dynamique", "motivé", "motivée", "passionné", "passionnée", "rigoureux", "rigoureuse", "force de proposition", "esprit d'équipe", "polyvalent", "polyvalente", "sérieux", "sérieuse"];
+const FR_SELF = /^(je|j['’]|mon|ma|mes)\b/i;
+
+function reviewCv(cv, today = new Date(), lang = "en") {
+  LANG = String(lang || "en").toLowerCase();
+  const EN = LANG === "en", FR = LANG === "fr";
   const problems = [], lookAt = [];
   const now = today.getFullYear() * 12 + today.getMonth();
   const secs = Array.isArray(cv && cv.sections) ? cv.sections : [];
@@ -95,12 +131,12 @@ function reviewCv(cv, today = new Date()) {
       const dt = dateText(e);
       const r = parseRange(dt);
       if (!dt) { if (s.id === "experience" || s.id === "education") problems.push(`${T}: "${label(e)}" has no dates. Add month and year.`); }
-      else if (!r.has) problems.push(`${T}: "${label(e)}" dates "${dt}" can't be read. Use "Jan 2025 – Present", "Jun 2023 – Aug 2024" or "May 2026".`);
+      else if (!r.has) problems.push(`${T}: "${label(e)}" dates "${dt}" can't be read. Use ${DATE_EXAMPLES()}.`);
       else {
         r.bad.forEach((b) => problems.push(`${T}: "${label(e)}" dates: ${b}.`));
-        if ((r.start.yearOnly || r.end.yearOnly) && s.id !== "education") lookAt.push(`${T}: "${label(e)}" has years only ("${dt}"). Ask for the months if they remember (like "Jun 2022 – Aug 2024").`);
+        if ((r.start.yearOnly || r.end.yearOnly) && s.id !== "education") lookAt.push(`${T}: "${label(e)}" has years only ("${dt}"). Ask for the months if they remember (like ${FR ? `"juin 2022 – août 2024"` : `"Jun 2022 – Aug 2024"`}).`);
         if (!r.end.present && r.start.m > r.end.m) problems.push(`${T}: "${label(e)}" starts after it ends ("${dt}").`);
-        if (!r.end.present && !r.end.expected && r.end.m > now && s.id !== "education") lookAt.push(`${T}: "${label(e)}" ends in the future ("${dt}"). If it's still going, write "Present".`);
+        if (!r.end.present && !r.end.expected && r.end.m > now && s.id !== "education") lookAt.push(`${T}: "${label(e)}" ends in the future ("${dt}"). If it's still going, write "${PRESENT_WORD()}".`);
         rows.push({ e, r, k: key(r) });
         if (s.id === "experience" || s.id === "education") dated.push({ e, T, from: r.start.m, to: r.end.present ? now : r.end.m, approx: r.start.yearOnly || r.end.yearOnly });
       }
@@ -114,9 +150,9 @@ function reviewCv(cv, today = new Date()) {
         const t = String(b.text || "").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").trim();
         if (!t) { problems.push(`${T}: "${label(e)}" has an empty bullet (${b.id}).`); continue; }
         if (/[.]$/.test(t) && !/\b(etc|Inc|Ltd|Co)\.$/.test(t)) problems.push(`${T}: bullet ${b.id} ends with a period. No periods at the end of bullets.`);
-        if (SELF.test(t)) problems.push(`${T}: bullet ${b.id} starts with "${t.split(/\s/)[0]}". Start with a verb, never I or my.`);
-        else if (WEAK_OPENERS.test(t)) lookAt.push(`${T}: bullet ${b.id} starts "${t.match(WEAK_OPENERS)[0]}". Start with what they did (Ran, Built, Trained, Sold...).`);
-        if (s.id === "experience" || s.id === "projects") {
+        if ((FR ? FR_SELF : SELF).test(t)) problems.push(`${T}: bullet ${b.id} starts with "${t.split(/\s/)[0]}". Start with a verb, never I or my.`);
+        else if (EN && WEAK_OPENERS.test(t)) lookAt.push(`${T}: bullet ${b.id} starts "${t.match(WEAK_OPENERS)[0]}". Start with what they did (Ran, Built, Trained, Sold...).`);
+        if (EN && (s.id === "experience" || s.id === "projects")) {
           const w = t.split(/\s+/)[0].replace(/[^A-Za-z-]/g, "");
           if (present && /ed$/i.test(w) && !/^(need|speed|seed|feed|lead)$/i.test(w)) lookAt.push(`${T}: "${label(e)}" is current, but bullet ${b.id} starts "${w}" (past tense). Current jobs use present tense (Run, Build, Train).`);
           if (r.has && !present && /^[A-Z][a-z]+s$/.test(w) && !/ss$/.test(w) && !/^(Sales|Operations|Analytics|Logistics|Systems)$/.test(w)) lookAt.push(`${T}: "${label(e)}" has ended, but bullet ${b.id} starts "${w}" (present tense). Past jobs use past tense.`);
@@ -132,7 +168,7 @@ function reviewCv(cv, today = new Date()) {
     if (out) {
       const want = [...rows].sort((a, b) => (newer(a.k, b.k) ? -1 : newer(b.k, a.k) ? 1 : 0));
       const note = s.id === "projects" ? " (tailoring may still move the most relevant project up for a job)" : "";
-      problems.push(`${T} is not newest first. Current ("Present") entries go on top, then by end date, newest to oldest${note}. Order it: ${want.map((x) => `${label(x.e)} (${x.r.raw})`).join(", ")}.`);
+      problems.push(`${T} is not newest first. Current ("${PRESENT_WORD()}") entries go on top, then by end date, newest to oldest${note}. Order it: ${want.map((x) => `${label(x.e)} (${x.r.raw})`).join(", ")}.`);
     }
   }
 
@@ -151,17 +187,20 @@ function reviewCv(cv, today = new Date()) {
   // ---- summary
   const sum = (cv && cv.summary) || {};
   const sumText = `${sum.lead || ""} ${sum.body || ""}`.toLowerCase();
-  const cl = CLICHES.filter((c) => sumText.includes(c));
+  const cl = (FR ? FR_CLICHES : EN ? CLICHES : []).filter((c) => sumText.includes(c));
   if (cl.length) problems.push(`Summary uses clichés: ${cl.join(", ")}. Say what they've actually done instead.`);
   if (sum.lead && sum.lead.trim().split(/\s+/).length > 10) lookAt.push("Summary lead line is over 10 words.");
   if (sum.body && sum.body.trim().split(/\s+/).length > 60) lookAt.push("Summary body is over 60 words.");
 
   // ---- header
-  if (cv && cv.name && cv.name !== cv.name.toUpperCase()) lookAt.push(`Name "${cv.name}" is usually written in capitals on a US CV.`);
+  if (EN && cv && cv.name && cv.name !== cv.name.toUpperCase()) lookAt.push(`Name "${cv.name}" is usually written in capitals on a US CV.`);
   const contact = String((cv && cv.contact) || "");
   if (!/@/.test(contact)) problems.push("Contact line has no email.");
-  if (!/\d{3}[^\d]{0,3}\d{3}[^\d]{0,2}\d{4}/.test(contact)) lookAt.push("Contact line has no phone number. Ask if they want one on it.");
-  if (/\b(born|d\.?o\.?b|date of birth|age|nationality|marital)\b/i.test(contact)) problems.push("Contact line has personal details (age, birth date, nationality, marital status). US CVs leave these out.");
+  if (!(EN ? /\d{3}[^\d]{0,3}\d{3}[^\d]{0,2}\d{4}/ : /\+?\d[\d .()-]{7,}\d/).test(contact)) lookAt.push("Contact line has no phone number. Ask if they want one on it.");
+  if (/\b(born|d\.?o\.?b|date of birth|age|nationality|marital|née?\s+le|nationalité|âge|situation familiale|mariée?|célibataire)\b/i.test(contact)) {
+    if (EN) problems.push("Contact line has personal details (age, birth date, nationality, marital status). US CVs leave these out.");
+    else lookAt.push("Contact line has personal details (age, birth date, nationality, family status). Most CVs now leave these out; ask if they want to keep them.");
+  }
 
   return { problems, lookAt };
 }

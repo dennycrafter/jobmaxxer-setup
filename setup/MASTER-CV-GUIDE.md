@@ -30,7 +30,7 @@ If they have nothing, that's fine too. Start from step 3.
 
 Also ask early:
 - What kinds of jobs are you going for? (This decides what matters most. SETUP.md step 3 asks again in more detail; reuse the answer.)
-- Which country will you apply in? This guide is for US-style CVs (called resumes in the US). If it's not the US, say so and adjust: see "Outside the US" at the end.
+- Which country will you apply in, and in which languages? This guide is for US-style CVs (called resumes in the US). If it's not the US, say so and adjust: see "Outside the US" at the end.
 
 ## 2. Start the fact bank
 
@@ -178,7 +178,7 @@ Shape as in SETUP.md step 2 and `setup/example-master-cv.json`. Every entry and 
 
 The tracker measures the real page the same way it measures tailored CVs. Use it, don't guess.
 
-1. **Before saving**, check it yourself from the repo: write the master CV to a JSON file and run `bash setup/check-cv.sh <file.json> [picture.png]`. It loads the real page with a fake empty database (nothing real is touched) and prints:
+1. **Before saving**, check it yourself from the repo: write the master CV to a JSON file and run `bash setup/check-cv.sh <file.json> [picture.png]` (for a CV in another language or on A4, add `--lang <code> --paper a4`, see "CVs in more than one language"). It loads the real page with a fake empty database (nothing real is touched) and prints:
    - `result`: GOOD only when it's one page, filled to the bottom, with no spills, and no `problems`
    - `problems`: must be fixed: entries not newest first (with the right order), dates in mixed or unreadable formats, start after end, bullets ending in a period or starting with "I", repeated ids, Skills above other sections, clichés in the summary, no email, personal details (age, nationality) in the header
    - `lookAt`: not failures, but worth a look: gaps of over 6 months between jobs and study, dates with years only, places without a state or country, past tense in a current job (or present tense in an old one), weak openers ("Responsible for"), the same verb used 3+ times, no phone. Fix the easy ones. Turn gaps and missing details into questions for the person (step 3a): a gap is often a job or project they forgot.
@@ -218,7 +218,31 @@ When the person remembers something new, in any chat:
 2. Add it to the fact bank (ask a follow-up or two first: numbers, dates, what came of it).
 3. Write it as a bullet (optional, unless it's stronger than a current core line, then swap). A new job, school or project goes in its place by date (newest first), not at the end. Save `profile/cv` with `update` on the `cv` field only, so their tailoring rules stay as they are.
 4. Re-check the page (`bash setup/check-cv.sh`, or the "How it prints" card).
+5. More than one CV language: add the same fact to every language's master (`profile/cv-<code>` too), each in its own language, and check each.
+
+## CVs in more than one language
+
+Some people apply in two languages, for example in France to French and international companies. Then they have **one master CV per language** (their CV languages are `langs` in `profile/search`; the first is the main one):
+
+- The main language's master is `profile/cv`. Every other language has its own: `profile/cv-<code>` (for example `profile/cv-en` when French is the main language), same shape `{cv, rules, updated}`. Save a new one with `set`; `rules` empty means the built-in starter rules, written for that language.
+- **Same facts, every language.** Build the main one first, then write the other from the same fact bank: never a fact in one that isn't true in the other. It is not a word-for-word translation: write it the way a native recruiter in that country expects to read it. Keep the same entry and bullet ids where the line is the same fact, so they're easy to keep in step. When a fact is added later, add it to every language's master.
+- **Interview once.** The fact bank (`profile/facts`) is shared. Interview in whichever language the person likes; write each master in its own language.
+- Each master is checked on its own paper and in its own language: `bash setup/check-cv.sh <file.json> [picture.png] --lang fr --paper a4`. Show each one to the person and get a yes for each.
+
+### French CVs (France)
+
+- **One page**, A4 (unless they chose otherwise). Name: `Prénom NOM` or all capitals, both are fine.
+- **Section titles:** `EXPÉRIENCE PROFESSIONNELLE`, `PROJETS`, `FORMATION`, `COMPÉTENCES` (add `LANGUES` or `CENTRES D'INTÉRÊT` only if useful). Keep the section ids `experience`, `projects`, `education`, `skills`.
+- **Dates:** lower-case French months, the same format everywhere: `janv. 2025 – aujourd'hui`, `juin 2023 – août 2024`, `sept. 2026`. Short forms: janv., févr., mars, avr., mai, juin, juil., août, sept., oct., nov., déc. "aujourd'hui" for anything still going. The checker enforces this with `--lang fr`.
+- **Places:** `Ville, Pays` (`Paris, France`, `Dublin, Irlande`). Phone written the French way (`06 12 34 56 78` or `+33 6 12 34 56 78`).
+- **Bullets:** start with a verb (present tense for the current job: `Gère`, `Pilote`, `Développe`; past participle or passé composé for past jobs: `Géré`, `A lancé`), never `Je`. No full stop at the end. A space before `:` (French typography: `Langues : anglais, français`).
+- **Summary** (`Profil`): plain and concrete, no clichés (dynamique, motivé, passionné, rigoureux, force de proposition).
+- **Languages and level** matter more on a French CV: put them in Skills with a real level (`anglais : courant (C1)`, `langue maternelle`).
+- **Leave out** photo, age, date of birth, nationality and family status unless the person really wants them (fewer French CVs include them now; ask).
+- **Diplomas:** use the French name when there is one (`Licence`, `Master`, `Bac+3`), and keep the school's own name.
+
+For another language, ask what's normal in that country (section titles, date format, what to leave out) and follow the same pattern.
 
 ## Outside the US
 
-If they apply in the UK or Ireland: a "CV" is often 2 pages there, but this tracker makes 1-page CVs, which is still fine for early career. Use UK English and day-month dates. For anywhere else, ask what's normal there and adjust; the "No" list (photo, age, etc.) differs by country. Tell them the tailoring rules say "plain US English" and offer to change that line in Tailoring rules (Master CV page, advanced).
+If they apply in the UK or Ireland: a "CV" is often 2 pages there, but this tracker makes 1-page CVs, which is still fine for early career. Use UK English and day-month dates. For anywhere else, ask what's normal there and adjust; the "No" list (photo, age, etc.) differs by country. The starter tailoring rules say "plain US English" for an English CV (offer to change that line to UK English in Tailoring rules, Master CV page, advanced); for a CV in another language they already name that language. Applying in two languages: see "CVs in more than one language".
