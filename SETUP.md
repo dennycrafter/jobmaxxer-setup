@@ -6,7 +6,7 @@ Don't use a task list or progress messages: they cost steps. Say in one line whe
 
 **The setup happens here, in this chat.** You ask the questions, they answer, you save everything. The tracker page is where results end up and where they can make small tweaks later, but never send them there to fill things in or check your work: show results in the chat instead (plain text, plus the CV picture from `setup/check-cv.sh`).
 
-Start with a short hello (two lines on what's about to happen, about 15 to 30 minutes of questions) and the first questions straight away: what kind of jobs are they going for, which country, and can they send whatever they have (an old CV, their LinkedIn as a PDF, or nothing). Publish the tracker (step 1) while they answer.
+Start with a short hello (two lines on what's about to happen, about 15 to 30 minutes of questions) and the first questions straight away: what kind of jobs are they going for, which country, which languages they apply in (for example only English, or French and English for someone in France), and can they send whatever they have (an old CV, their LinkedIn as a PDF, or nothing). Publish the tracker (step 1) while they answer.
 
 Keep it cheap: they pay for every token. `index.html` is about 270KB, with one 64,000-character logo line. Don't read it into the chat or open it to look around; publish it by its path. If the Artifact tool insists on reading a file before its first publish, that is the only time. Leave the embedded logos as they are (separate image files don't load in the Claude mobile app).
 
@@ -25,12 +25,19 @@ If a later version of this repo is published to the same URL, the database is ke
 
 ## 2. Build the master CV
 
+**Languages and paper first.** Ask, in one go:
+- Which languages do you apply in? Most people: one. Someone in France might say French and English. The first one they name is their main language.
+- What paper should the CVs print on: A4 or US Letter? (Suggest A4 outside the US and Canada, US Letter inside. They can pick per language, for example A4 for French and US Letter for English.)
+
+They get **one master CV per language**, all built from the same true facts. Save the languages now, so the page shows the right paper while you build: ArtifactData doc `profile/search`, action `set`, data `{"langs": [{"code": "fr", "paper": "a4"}, {"code": "en", "paper": "a4"}]}` (two-letter language codes, main first; one language = one item, e.g. `[{"code": "en", "paper": "letter"}]`). Step 3 saves the full search settings: keep `langs` in it.
+
 **Read `setup/MASTER-CV-GUIDE.md` now and follow it.** Assume the person has never written a good CV: don't just copy what they send. Collect whatever they have (old CV, LinkedIn, a brain dump, or nothing), interview them a few questions at a time, save every answer to the fact bank (`profile/facts`), and write a true, US-standard, one-page master CV that fills the page with no lines spilling a word, with every section newest first ("Present" on top) and dates written the same way everywhere. `bash setup/check-cv.sh` checks all of that. This is the most important step: every tailored CV is built only from it. Take the time it needs.
 
 Save the master CV with the ArtifactData tool:
 
 - doc `profile/cv`, action `set`, data `{"cv": <master CV>, "rules": "", "updated": "<ISO date>"}`
 - `rules` empty means the page uses its built-in starter tailoring rules. The person can edit them later on the Master CV page.
+- More than one language: the main language's master goes in `profile/cv`, each other language's in `profile/cv-<code>` (e.g. `profile/cv-en`), same shape. Follow "CVs in more than one language" in the guide (same facts, written natively, checked with `--lang <code> --paper <a4 or letter>`). Show each one and get a yes for each.
 
 Shape (see `setup/example-master-cv.json` for a full example):
 
@@ -95,6 +102,7 @@ Save with ArtifactData, doc `profile/search`, action `set`:
 
 ```
 {"cities": ["Austin"], "arrangements": ["On-site", "Hybrid"],
+ "langs": [{"code": "en", "paper": "letter"}],    // their CV languages from step 2, main first, each with "a4" or "letter"
  "jobTypes": ["Full-time"],                      // any of Full-time, Part-time, Contract, Internship
  "level": "entry",                               // entry, mid, senior or any
  "roleTypes": [{"id": "icu", "name": "ICU and critical care nursing", "ex": "ICU nurse, critical care RN"}],
@@ -103,6 +111,8 @@ Save with ArtifactData, doc `profile/search`, action `set`:
  "dailyTarget": 10, "maxNew": 30, "skipCompanies": [],   // their daily goal and new jobs per search
  "about": "their few lines", "refresh": "new roles daily 6:55am", "updated": "<ISO date>"}   // refresh matches their days and time, e.g. "new roles weekdays 7:30am"
 ```
+
+For someone applying in more than one language, the cities can be anywhere (for example Paris and Lyon, plus Remote), and role types can include roles that ask for a second language.
 
 Read the settings back to them in the chat in plain words ("You'll get up to 30 new entry-level sales and customer success jobs in Austin each weekday at 7:30am, full-time, on-site or hybrid. Your goal is 10 applications a day.") and get a yes. Mention once that they can change these later on the Search settings page, or just ask in a chat.
 
@@ -119,8 +129,8 @@ Prompt:
 ```
 You run the morning job search for the jobmaxxer tracker at ARTIFACT_URL. Use the ArtifactData tool on that URL.
 
-1. Read profile/search (cities, arrangements, jobTypes, level, roleTypes, roles, maxYears, maxNew, skipCompanies, about) and profile/cv (the master CV). Read the jobs collection so you never add a job that is already there (same posting URL, or same company and role).
-2. Search the web for roles posted in the last 7 days in each city that match: one of the switched-on role types (the roleTypes whose id is in roles; use their names and example titles as search terms), the level (entry = entry level or associate, mid, senior, any), one of the jobTypes, and one of the arrangements. Good places: company careers pages on Greenhouse, Lever, Ashby and Workable, Built In, Wellfound, and LinkedIn job pages. Open each posting to read it. Skip: staffing agencies, roles far off their level, job types or work setups they didn't pick, roles asking for maxYears or more years (unless maxYears is 99), companies in skipCompanies.
+1. Read profile/search (cities, arrangements, jobTypes, level, roleTypes, roles, maxYears, maxNew, skipCompanies, about, langs) and profile/cv (the master CV). Read the jobs collection so you never add a job that is already there (same posting URL, or same company and role).
+2. Search the web for roles posted in the last 7 days in each city that match: one of the switched-on role types (the roleTypes whose id is in roles; use their names and example titles as search terms), the level (entry = entry level or associate, mid, senior, any), one of the jobTypes, and one of the arrangements. Good places: company careers pages on Greenhouse, Lever, Ashby and Workable, Built In, Wellfound, and LinkedIn job pages. Outside the US also use that country's own job boards (France: Welcome to the Jungle, APEC, France Travail, Indeed France, HelloWork). If langs lists more than one language, look for postings written in each of them (search in each language, e.g. "chargé de clientèle Paris" and "account manager Paris"), and include international companies that post in English. Open each posting to read it. Skip: staffing agencies, roles far off their level, job types or work setups they didn't pick, roles asking for maxYears or more years (unless maxYears is 99), companies in skipCompanies.
 3. Add at most maxNew new jobs. For each, ArtifactData set jobs/<id> where id is a short unique slug (company-role-yyyymmdd), with:
    company, role (exact title), url, source (site name), status "new", found (today, YYYY-MM-DD),
    city (which of their cities it is in), arrangement (e.g. "Hybrid, Austin"), salary (as shown, or ""),
@@ -128,6 +138,7 @@ You run the morning job search for the jobmaxxer tracker at ARTIFACT_URL. Use th
    jd (condensed posting, max 300 words, plain text with lines DOES:, REQUIRES:, NICE:, KEYWORDS:, PAY:, ARRANGEMENT:),
    track and cv (the name of the closest switched-on role type, spelled exactly as in roleTypes), fit ("A" strong, "B" decent, "C" stretch, judged against "about" and the master CV),
    why (one plain sentence on why it fits, no em dashes), flags (short warnings separated by "; ", or ""), pending false.
+   Only if langs has more than one language: lang (the code of the language the posting is written in, one of the langs codes) and cvLangs (the CV languages to send: usually just [lang]; list two only when the posting asks for a CV in each, e.g. "CV en français et en anglais"). If a posting asks for a language the person doesn't speak, add it to flags.
    If a job's city is not one of theirs, add "Relocation needed" to flags.
 4. Best fits first. Never change or delete existing jobs.
 5. Finish with one short line: how many jobs were added and how many were A.
@@ -148,7 +159,7 @@ You fill in job links that were pasted into the jobmaxxer tracker at ARTIFACT_UR
 
 Read the jobs collection. For each job with pending true and a url, and no pendingTried true:
 - Open the url and read the posting.
-- If you can read it, ArtifactData update jobs/<id> with company, role, city, arrangement, salary, auth, jd, track, cv, fit, why, flags (same meanings as the morning search uses; judge fit against profile/search "about" and profile/cv), plus pending false, pendingNote "".
+- If you can read it, ArtifactData update jobs/<id> with company, role, city, arrangement, salary, auth, jd, track, cv, fit, why, flags (same meanings as the morning search uses; judge fit against profile/search "about" and profile/cv), plus pending false, pendingNote "". If profile/search langs has more than one language, also lang and cvLangs (same meanings as the morning search).
 - If you can't read it (login wall, expired, blocked), update the job with pendingTried true and pendingNote "Couldn't open the link: paste the description". The page then asks the person to paste it.
 Change nothing else. If no jobs are pending, stop without a message.
 ```
@@ -164,6 +175,7 @@ Tell the person, briefly:
 - the first jobs arrive after tomorrow's morning search, and they can add links or descriptions any time in My links
 - whenever they remember something new for their CV (an old job, a win, a number), they can open any Claude chat and say "Add this to my jobmaxxer master CV: ..." (with this repo attached, or the tracker link). Claude follows `setup/MASTER-CV-GUIDE.md`, "Adding more later"
 - to check their master CV, and that "Your preferences" (profile menu) is where rules like "never call me X" end up; the page also saves them when they say so in the CV chat
+- more than one language: each job's CV comes in the posting's language. A switch at the top of a job (for example Français / English / Both) changes it; Both makes a CV in each language. Each language's master CV is on the Master CV page (switch at the top), and the paper per language is in Search settings
 
 ## Later changes
 

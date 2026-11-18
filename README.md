@@ -9,7 +9,8 @@ It runs as a private page (an "artifact") on your Claude account. Your jobs, CV 
 ## What it does
 
 - **Finds jobs every morning** for the roles, cities and level you choose, and grades each one A to C.
-- **Tailors your CV for each job.** It writes a US-style CV that fills exactly one page and downloads as .docx or .pdf. It only uses true facts from your master CV, never made-up ones.
+- **Tailors your CV for each job.** It writes a CV that fills exactly one page (US Letter or A4) and downloads as .docx or .pdf. It only uses true facts from your master CV, never made-up ones.
+- **Works in more than one language.** Applying in French and English, say? You get a master CV in each, every job gets its CV in the posting's language, and one switch gives you the other language or both.
 - **Helps you build a strong CV first.** You don't need a good CV to start. Claude interviews you, keeps everything you tell it, and writes the CV with you.
 - **Drafts application answers** in your own voice.
 - **Keeps you moving** with a daily goal, a streak, and reminders for follow-ups.

@@ -15,6 +15,7 @@ const fakeClaude = (d) => {
   const jobs = Object.fromEntries(d.jobs.map((j) => [j.id, j]));
   const docs = { "profile/cv": d.profile_cv };
   if (d.profile_search) docs["profile/search"] = d.profile_search;
+  Object.assign(docs, d.docs || {});
   const listeners = [];
   window.__writes = [];
   const emit = () => { const snap = { docs: Object.values(jobs).map((j) => ({ id: j.id, data: () => j })) }; listeners.forEach((cb) => setTimeout(() => cb(snap), 0)); };
@@ -541,7 +542,10 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     await bg.screenshot({ path: path.join(SHOTS, "20-tailoring-in-background.png") });
     await bg.click('.row[data-id="test-a"] button[data-act="tailor"]'); await bg.waitForTimeout(150);
     check("Reopening the job shows the tailor still running, with Stop", /Thinking|Writing|Checking/.test(await bg.textContent("#t-status")) && (await bg.isVisible("#t-stop")) && (await bg.isDisabled("#t-go")), await bg.textContent("#t-status"));
-    await bg.click("#t-close"); await bg.waitForTimeout(1800);
+    await bg.click("#t-close");
+    // the reply takes 1.2s, then one fit pass another 1.2s: wait for the save instead of guessing how long it takes
+    await bg.waitForFunction(() => window.__writes.some((w) => w.path === "jobs/test-a" && w.patch && w.patch.tailor), null, { timeout: 6000 }).catch(() => {});
+    await bg.waitForTimeout(300);
     const bgw = await bg.evaluate(() => window.__writes.filter((w) => w.path === "jobs/test-a" && w.patch && w.patch.tailor).length);
     check("The draft is saved even though the view was closed", bgw === 1, String(bgw));
     check("The row then shows CV tailored and a toast says it's ready", /CV tailored/.test(await bg.textContent('.row[data-id="test-a"] .meta')) && /CV ready: Alpha/.test(await bg.textContent("#toast")), await bg.textContent("#toast"));
@@ -603,6 +607,99 @@ const check = (name, ok, detail = "") => { results.push({ name, ok: !!ok }); con
     check("After a failure it retries on its own and still finishes first, then the next in line", order[0] === "jobs/test-a" && order.includes("jobs/test-b") && calls.indexOf("Beta") > calls.lastIndexOf("Alpha") - 0 && calls[0] === "Alpha" && calls[1] === "Alpha", JSON.stringify({ order, calls }));
     check("No page errors around retries", rtErr.length === 0, rtErr.join(" | "));
     await rt.close();
+
+    // ---------- CV languages: a French and English search (French main, both on A4) ----------
+    {
+      const frJd = "Nous recherchons un chargé de clientèle pour notre équipe à Paris. Vous serez en contact avec nos clients et vous travaillerez avec les équipes commerciales. Le poste est basé dans nos bureaux.";
+      const mlData = { ...data, profile_cv: data.profile_cv_fr, docs: { "profile/cv-en": data.profile_cv },
+        profile_search: { cities: ["Paris"], langs: [{ code: "fr", paper: "a4" }, { code: "en", paper: "a4" }] },
+        jobs: [
+          { ...data.jobs[0], city: "Paris", jd: "DOES: outbound calls with our customers. REQUIRES: a degree and you will work with the team." },
+          { id: "fr-1", company: "Société Test", role: "Chargé de clientèle", status: "new", fit: "A", found: "2026-10-02", city: "Paris", arrangement: "Hybride", jd: frJd, auth: "None stated", flags: "" },
+          { id: "both-1", company: "Bilingue SA", role: "Account manager", status: "new", fit: "B", found: "2026-10-02", city: "Paris", lang: "fr", cvLangs: ["en", "fr"], jd: frJd, auth: "None stated", flags: "" },
+        ] };
+      const ml = await browser.newPage({ viewport: { width: 1280, height: 1000 }, colorScheme: "light" });
+      const mlErr = []; ml.on("pageerror", (e) => mlErr.push(e.message));
+      await ml.addInitScript(fakeClaude, mlData);
+      // a sample that records each tailoring prompt and replies with a valid draft
+      await ml.addInitScript(() => {
+        const base = window.claude.use; window.__prompts = [];
+        window.claude = { use: async (n) => n !== "sample" ? base(n) : { json: async (prompt) => { window.__prompts.push(typeof prompt === "string" ? prompt : JSON.stringify(prompt)); return { summary: { lead: "Lead.", body: "Body." }, bullets: {}, gaps: [], changes: ["t"], keywords: [] }; } } };
+      });
+      await ml.goto("file://" + testFile); await ml.waitForTimeout(1000);
+      const chip = (id) => ml.textContent(`.row[data-id="${id}"] .meta .lang`).catch(() => "");
+      check("Languages: each card shows its CV language from the posting (English post EN, French post FR)", /CV EN/.test(await chip("test-a")) && /CV FR$/.test((await chip("fr-1")).trim()), (await chip("test-a")) + " / " + (await chip("fr-1")));
+      check("Languages: a job that asks for both shows FR + EN", /CV FR \+ EN/.test(await chip("both-1")), await chip("both-1"));
+      await ml.click('.row[data-id="fr-1"] button[data-act="tailor"]'); await ml.waitForTimeout(400);
+      const pressed = () => ml.$$eval("#t-langs button", (bs) => bs.filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.dataset.lang));
+      check("Languages: the drawer shows the language switch with French picked for a French posting", (await ml.isVisible("#t-langs")) && JSON.stringify(await pressed()) === '["fr"]', JSON.stringify(await pressed()));
+      check("Languages: the French CV is on A4 and shows the French master", (await ml.getAttribute("#t-paper", "data-paper")) === "a4" && /EXPÉRIENCE PROFESSIONNELLE/.test(await ml.textContent("#t-paper")) && /Français/.test(await ml.textContent("#t-prevlabel")));
+      const a4w = await ml.$eval("#t-paper", (p) => p.offsetWidth);
+      check("Languages: the A4 page is A4 wide (595pt)", Math.abs(a4w - 595.28 * 96 / 72) < 2, String(a4w));
+      await ml.click('#t-langs button[data-lang="*"]'); await ml.waitForTimeout(400);
+      const both = await ml.evaluate(() => window.__writes.filter((w) => w.path === "jobs/fr-1" && w.patch && w.patch.cvLangs).map((w) => w.patch.cvLangs));
+      check("Languages: Both saves the job as needing a CV in each language", JSON.stringify(both[both.length - 1]) === '["fr","en"]', JSON.stringify(both));
+      check("Languages: with Both, the button tailors both and a view switch appears", /Tailor both CVs/.test(await ml.textContent("#t-go")) && (await ml.isVisible("#t-views")), await ml.textContent("#t-go"));
+      await ml.screenshot({ path: path.join(SHOTS, "30-languages-drawer-both.png") });
+      await ml.click("#t-go");
+      await ml.waitForFunction(() => window.__writes.some((w) => w.path === "jobs/fr-1" && w.patch && w.patch.tailor_en), null, { timeout: 8000 }).catch(() => {});
+      await ml.waitForTimeout(300);
+      const tw = await ml.evaluate(() => window.__writes.filter((w) => w.path === "jobs/fr-1" && w.patch && (w.patch.tailor || w.patch.tailor_en)).map((w) => Object.keys(w.patch)[0]));
+      check("Languages: Tailor both saves a French draft (tailor) and an English one (tailor_en)", tw.includes("tailor") && tw.includes("tailor_en"), JSON.stringify(tw));
+      const prompts = await ml.evaluate(() => window.__prompts.filter((p) => /tailoring .*one-page CV/.test(p)));
+      check("Languages: each tailor prompt names its language and uses that language's master", prompts.some((p) => /CV is in French/.test(p) && /EXPÉRIENCE PROFESSIONNELLE/.test(p)) && prompts.some((p) => /CV is in English/.test(p) && /"EXPERIENCE"/.test(p)), String(prompts.length));
+      await ml.click('#t-views button[data-view="en"]'); await ml.waitForTimeout(400);
+      check("Languages: the view switch shows the English draft with English downloads", /EXPERIENCE/.test(await ml.textContent("#t-paper")) && !/EXPÉRIENCE/.test(await ml.textContent("#t-paper")) && /\(EN\)/.test(await ml.textContent("#t-dl")));
+      await ml.screenshot({ path: path.join(SHOTS, "31-languages-english-view.png") });
+      await ml.click("#t-close"); await ml.waitForTimeout(300);
+      check("Languages: the card then shows both CVs tailored", /CV tailored FR \+ EN/.test(await ml.textContent('.row[data-id="fr-1"] .meta')), await ml.textContent('.row[data-id="fr-1"] .meta'));
+      await ml.screenshot({ path: path.join(SHOTS, "32-languages-queue.png") });
+      // master CV page: one master per language
+      await ml.click("#me-btn"); await ml.click('.menuitem[data-tab="cv"]'); await ml.waitForTimeout(600);
+      check("Languages: the Master CV page has a language switch and shows the French master on A4", (await ml.isVisible("#cv-langs")) && /A4/.test(await ml.textContent("#m-paperlbl")) && /EXPÉRIENCE/.test(await ml.textContent("#m-paper")));
+      await ml.click('#cv-langs button[data-edlang="en"]'); await ml.waitForTimeout(600);
+      check("Languages: switching it shows the English master", /EXPERIENCE/.test(await ml.textContent("#m-paper")) && !/EXPÉRIENCE/.test(await ml.textContent("#m-paper")));
+      await ml.fill('#cv-form textarea[data-cv="sections.0.entries.0.bullets.0.text"]', "Ran daily dispatch for 41 drivers across 3 routes"); await ml.waitForTimeout(100);
+      await ml.click("#cv-save"); await ml.waitForTimeout(400);
+      const cvw = await ml.evaluate(() => window.__writes.filter((w) => /^profile\/cv/.test(w.path)).map((w) => w.path));
+      check("Languages: saving the English master writes profile/cv-en, not the French one", JSON.stringify(cvw) === '["profile/cv-en"]', JSON.stringify(cvw));
+      // settings: paper per language, kept on save
+      await ml.click("#me-btn"); await ml.click('.menuitem[data-tab="settings"]'); await ml.waitForTimeout(400);
+      check("Languages: settings list each CV language with its paper", /Français/.test(await ml.textContent("#set-langs")) && /English/.test(await ml.textContent("#set-langs")));
+      await ml.click('#set-langs button[data-paper="1:letter"]'); await ml.click("#set-save"); await ml.waitForTimeout(400);
+      const sv = await ml.evaluate(() => (window.__writes.filter((w) => w.path === "profile/search").pop() || {}).set);
+      check("Languages: saving settings keeps the languages and the paper picked", sv && JSON.stringify(sv.langs) === '[{"code":"fr","paper":"a4"},{"code":"en","paper":"letter"}]', JSON.stringify(sv && sv.langs));
+      await ml.screenshot({ path: path.join(SHOTS, "33-languages-settings.png"), fullPage: true });
+      check("Languages: no page errors", mlErr.length === 0, mlErr.join(" | "));
+      await ml.close();
+      // one language (the default): nothing new shows
+      const one = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+      await one.addInitScript(fakeClaude, data); await one.goto("file://" + testFile); await one.waitForTimeout(900);
+      const noChip = (await one.$$(".meta .lang")).length === 0;
+      await one.click('.row[data-id="test-a"] button[data-act="tailor"]'); await one.waitForTimeout(300);
+      check("One language: no language chips or switch, and the CV stays on US Letter", noChip && !(await one.isVisible("#t-langbar")) && (await one.getAttribute("#t-paper", "data-paper")) === "letter");
+      await one.close();
+      // the .docx and .pdf builders follow the paper size
+      const builders = html.slice(html.indexOf("const niceName"), html.indexOf("(() => {\n  const STATUS_TAB"));
+      const B = new Function(builders + "; return { buildCvDoc, buildCvPdf };")();
+      const D = require("docx"), zlib = require("zlib");
+      const docXml = (buf) => { // read word/document.xml out of the .docx zip
+        for (let i = 0; i < buf.length - 30; i++) if (buf.readUInt32LE(i) === 0x04034b50) {
+          const n = buf.readUInt16LE(i + 26), x = buf.readUInt16LE(i + 28), name = buf.toString("utf8", i + 30, i + 30 + n), size = buf.readUInt32LE(i + 18), at = i + 30 + n + x;
+          if (name === "word/document.xml") return (buf.readUInt16LE(i + 8) === 8 ? zlib.inflateRawSync(buf.subarray(at, at + size)) : buf.subarray(at, at + size)).toString("utf8");
+        }
+        return "";
+      };
+      const a4x = docXml(await D.Packer.toBuffer(B.buildCvDoc(D, { ...data.profile_cv.cv, paper: "a4" })));
+      const ltx = docXml(await D.Packer.toBuffer(B.buildCvDoc(D, data.profile_cv.cv)));
+      check("The .docx is A4 when the language is set to A4, and US Letter by default", /w:w="11906"[^>]*w:h="16838"/.test(a4x) && /w:pos="10466"/.test(a4x) && /w:w="12240"[^>]*w:h="15840"/.test(ltx));
+      // fake jsPDF: records the paper format and where right-aligned text (dates) ends
+      const rec = { fmt: null, right: 0 };
+      class FakePdf { constructor(o) { rec.fmt = o.format; } setProperties() {} addFileToVFS() {} addFont() {} setFont() {} setFontSize() {} setTextColor() {} setDrawColor() {} setLineWidth() {} line() {} link() {} setFillColor() {} rect() {} addPage() {}
+        getStringUnitWidth(t) { return t.length * 0.5; } text(t, x, y, o) { if (o && o.align === "right") rec.right = Math.max(rec.right, x); } }
+      B.buildCvPdf(FakePdf, { ...data.profile_cv.cv, paper: "a4" }, null);
+      check("The .pdf is A4 with dates on the A4 right margin", rec.fmt === "a4" && Math.abs(rec.right - 559.28) < 0.01, rec.fmt + " " + rec.right);
+    }
 
     // ---------- a brand new copy: empty database, nothing set up yet ----------
     check("The page has no personal details baked in", !/denis|popov|\bUCD\b|hitchhik|starpool|bitpilot|arrive logistics|kilian/i.test(html.replace(/data:image\/webp;base64,[A-Za-z0-9+/=]+/g, "")));

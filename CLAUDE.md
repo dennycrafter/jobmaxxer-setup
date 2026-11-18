@@ -2,6 +2,8 @@
 
 This repo is the clean starter copy of jobmaxxer, a job tracker that runs as a Claude artifact. Each person publishes their own copy from their own Claude account, with their own empty database.
 
+CV languages: anyone can have one CV language (the default, English on US Letter) or several (for example French and English on A4). The page code for it is the `// ---------- CV languages and paper ----------` section (langs(), masters, tKey/cKey, jobCvLangs, setPaper). With one language nothing extra shows.
+
 - First-time setup: follow `SETUP.md`.
 - Anything about the person's master CV (building it, adding to it, fixing it): follow `setup/MASTER-CV-GUIDE.md`. Assume they don't know how to write a good CV; coach them. Check any master CV with `bash setup/check-cv.sh <file.json>` before saving it (page fit, plus order and consistency from `setup/cv-rules.js`: newest first, dates, bullets, gaps).
 - The person may not be technical. Plain words, short steps, no em dashes.
@@ -26,12 +28,13 @@ Every step re-reads a large block of setup, so the number of steps is the cost. 
 
 ## Where the data lives
 In the artifact's own database (ArtifactData on the artifact URL):
-- `jobs/<id>`: one doc per job.
-- `profile/cv`: `{cv, rules}`, the master CV and tailoring rules (empty rules = built-in starter rules).
+- `jobs/<id>`: one doc per job. With several CV languages: `lang` (the posting's language), `cvLangs` (the CVs it needs, set by the search or the switch in the drawer), and drafts per language: `tailor`/`chat` for the main language, `tailor_<code>`/`chat_<code>` for the others.
+- `profile/cv`: `{cv, rules}`, the master CV and tailoring rules (empty rules = built-in starter rules), in the main CV language.
+- `profile/cv-<code>`: the same, for each other CV language (e.g. `profile/cv-en` when French is the main one). Only when `profile/search.langs` has more than one language.
 - `profile/voice`: writing voice, samples, stories for application answers.
 - `profile/prefs`: `{items:[{id,text,added}]}`, standing preferences, added from the page.
 - `profile/facts`: `{items:[{id,about,text,added}]}`, the fact bank: everything the person has said about their experience, in their words. The master CV is built from it. The page doesn't read it.
-- `profile/search`: cities, work setups (`arrangements`), `jobTypes`, `level`, the person's own `roleTypes` ([{id,name,ex}]) and which are on (`roles`), limits, skip list, `about`. The morning search task reads it every run. With no `roleTypes` saved the page uses the starter list `ROLE_TYPES`.
+- `profile/search`: cities, work setups (`arrangements`), `jobTypes`, `level`, the person's own `roleTypes` ([{id,name,ex}]) and which are on (`roles`), limits, skip list, `about`, and the CV languages `langs` ([{code, paper}], main first; paper `letter` or `a4`; missing = English on US Letter). The morning search task reads it every run. With no `roleTypes` saved the page uses the starter list `ROLE_TYPES`.
 
 The page reads the person's name from the master CV. Nothing about any one person is hardcoded; keep it that way (a check fails if names creep in).
 
